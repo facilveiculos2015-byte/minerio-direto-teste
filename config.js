@@ -19,6 +19,8 @@ const MINERA_AMBIENTE = (function () {
     catch (e) { return 'producao'; }
 })();
 const MINERA_TESTE = MINERA_AMBIENTE === 'teste';
+/** Superapp DESLIGADO: o teste é igual à produção (código do superapp guardado no branch superapp-fase1). */
+const MINERA_SUPERAPP = false;
 const MINERA_DB_ATUAL = (MINERA_TESTE && MINERA_DB.teste) ? MINERA_DB.teste : MINERA_DB.producao;
 const MINERA_DB_COMPARTILHADO = MINERA_TESTE && MINERA_DB_ATUAL === MINERA_DB.producao;
 
@@ -39,11 +41,6 @@ const APP_ROOT = (function () {
     } catch (e) { /* fallback abaixo */ }
     try { return /^\/minera-app(\/|$)/.test(location.pathname) ? '/minera-app/' : '/'; } catch (e) { return '/'; }
 })();
-/** SUPERAPP (tela inicial em grade de apps): por enquanto SÓ no ambiente de teste.
- *  Para ligar em produção depois de aprovado: troque por  const MINERA_SUPERAPP = true; */
-const MINERA_SUPERAPP = MINERA_TESTE;
-/** Página inicial depois do login. */
-function homeApp() { return MINERA_SUPERAPP ? 'apps.html' : 'inicio.html'; }
 /** URL pública canônica (links de convite/compartilhamento). No teste usa o próprio endereço do teste. */
 const APP_PUBLIC_URL = MINERA_TESTE ? (location.origin + APP_ROOT) : 'https://minerapara.com.br/';
 function irPara(pagina) {

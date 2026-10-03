@@ -419,7 +419,7 @@ function garantirHeaderModoUiBtn(perfil) {
     /** Sticky SEMPRE no modo usuário — não depende de header.header-row (Início/Chat/Perfil). */
     
 /** Páginas raiz da bottom-nav — não injetam Voltar de página. */
-const PAGINAS_RAIZ = new Set(['inicio', 'lotes', 'chat', 'perfil', 'index', 'entrar', 'apps']);
+const PAGINAS_RAIZ = new Set(['inicio', 'lotes', 'chat', 'perfil', 'index', 'entrar']);
 
 function paginaAtualId() {
     const path = (location.pathname || '').split('/').pop() || '';
@@ -530,9 +530,8 @@ function garantirStickyVoltar() {
         btn.classList.add('btn-modo-ver-user');
         btn.onclick = () => {
             if (typeof gravarModoUi === 'function') gravarModoUi('usuario');
-            const _home = (typeof homeApp === 'function') ? homeApp() : 'inicio.html';
-            if (typeof irPara === 'function') irPara(_home);
-            else window.location.href = (typeof APP_ROOT === 'string' ? APP_ROOT : '') + _home;
+            if (typeof irPara === 'function') irPara('inicio.html');
+            else window.location.href = (typeof APP_ROOT === 'string' ? APP_ROOT : '') + 'inicio.html';
         };
         let btnPainel = document.getElementById('btn-modo-ui-painel');
         const onAdminPage = document.body && (
@@ -611,23 +610,8 @@ function garantirBtnSair(paginaAtiva) {
     else btn.classList.add('oculto');
 }
 
-/** SUPERAPP: carrega superapp.css/js (só quando MINERA_SUPERAPP) e inicia o mini-app da página. */
-function garantirSuperApp(paginaAtiva, perfil) {
-    if (typeof MINERA_SUPERAPP === 'undefined' || !MINERA_SUPERAPP) return;
-    const root = (typeof APP_ROOT === 'string' ? APP_ROOT : '');
-    const go = () => { try { window.MineraSuperApp.iniciar(paginaAtiva, perfil); } catch (e) { console.warn('superapp', e); } };
-    if (!document.getElementById('sa-css')) {
-        const l = document.createElement('link'); l.id = 'sa-css'; l.rel = 'stylesheet'; l.href = root + 'superapp.css?v=20261003p'; document.head.appendChild(l);
-    }
-    if (window.MineraSuperApp) { go(); return; }
-    let s = document.getElementById('sa-js');
-    if (!s) { s = document.createElement('script'); s.id = 'sa-js'; s.src = root + 'superapp.js?v=20261003p'; document.head.appendChild(s); }
-    s.addEventListener('load', go);
-}
-
 function montarNav(paginaAtiva, perfil) {
     garantirBrandLogo();
-    garantirSuperApp(paginaAtiva, perfil);
     garantirHeaderNotifBtn();
 
     // Modo UI admin: default + bloqueio de páginas de cliente
@@ -714,11 +698,7 @@ function montarNav(paginaAtiva, perfil) {
         bar.removeAttribute('aria-hidden');
 
         const iniciais = iniciaisNome(perfil && perfil.nome);
-        const navItens = (typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP)
-            ? [Object.assign({}, NAV_PRIMARIOS[0], { id: 'apps', label: 'Início', href: 'apps.html' }), NAV_PRIMARIOS[3], NAV_PRIMARIOS[4]]
-            : NAV_PRIMARIOS;
-        bar.classList.toggle('bn-superapp', navItens !== NAV_PRIMARIOS);
-        bar.innerHTML = navItens.map(it => {
+        bar.innerHTML = NAV_PRIMARIOS.map(it => {
             const on = (it.id === paginaAtiva || (it.id === 'lotes' && paginaAtiva === 'novo')) ? ' on' : '';
             if (it.special) {
                 return '<a class="bn-item bn-novo' + on + '" href="' + APP_ROOT + it.href + '" title="Novo">' +
@@ -762,7 +742,7 @@ function montarNav(paginaAtiva, perfil) {
 /** Logo escavadeira ao lado do título Minera Pará (toda página autenticada) */
 function garantirBrandLogo() {
     const root = (typeof APP_ROOT === 'string' ? APP_ROOT : '');
-    const src = root + 'logo-escavadeira.png?v=20261003p';
+    const src = root + 'logo-escavadeira.png?v=20261003q';
     document.querySelectorAll('header.header-row h1, header.auth-header h1').forEach(h1 => {
         // Already wrapped in brand-row with logo
         const existingRow = h1.closest('.brand-row');
@@ -916,7 +896,6 @@ const MineraNotif = (function () {
     function updateBadge(n) {
         dmBadgeCount = Number(n) || 0;
         renderCombinedBadge();
-        try { window.dispatchEvent(new CustomEvent('minera:unread', { detail: dmBadgeCount })); } catch (e) { /* ignore */ }
     }
 
     /** Badge na aba Chat da barra inferior (mesma contagem de DMs não lidas do sino). */
@@ -1401,7 +1380,7 @@ const MineraNotif = (function () {
         if (document.getElementById('notif-lembrete')) return true;
         return started && (!primeiroPollFeito || lembretePendente);
     }
-    return { count: () => dmBadgeCount, start, poll, agendarPoll, marcarEntregue, updateBadge, setAdminEmpPendentes, setAdminAlertas, renderCombinedBadge, showBrowserNotif, avaliarLembrete, lembreteOcupado };
+    return { start, poll, agendarPoll, marcarEntregue, updateBadge, setAdminEmpPendentes, setAdminAlertas, renderCombinedBadge, showBrowserNotif, avaliarLembrete, lembreteOcupado };
 })();
 window.MineraNotif = MineraNotif;
 

@@ -5,23 +5,23 @@
  *  - JS/CSS/demais: cache 'no-cache' (revalida com ETag → atualiza na hora)
  *  - version.json: nunca cacheado (checagem de build do pwa.js)
  */
-const CACHE_PROD = 'minera-shell-20261003p';
+const CACHE_PROD = 'minera-shell-20261003q';
 /* Teste (github.io/netlify) usa outro prefixo: nunca colide com produção nem com outros apps da mesma origem. */
 const IS_PROD_HOST = /^(www\.)?minerapara\.com\.br$/i.test(self.location.hostname);
 const CACHE_PREFIX = IS_PROD_HOST ? 'minera-shell-' : 'minerio-teste-shell-';
 const CACHE = IS_PROD_HOST ? CACHE_PROD : CACHE_PROD.replace(/^minera-shell-/, CACHE_PREFIX);
 const PRECACHE = [
-  './style.css?v=20261003p',
-  './chat-realtime.js?v=20261003p',
-  './avatar.js?v=20261003p',
-  './avatar-editor.js?v=20261003p',
-  './nav.js?v=20261003p',
-  './config.js?v=20261003p',
-  './pwa.js?v=20261003p',
-  './lightbox.js?v=20261003p',
-  './gestor.css?v=20261003p',
-  './gestor-calc.js?v=20261003p',
-  './gestor.js?v=20261003p',
+  './style.css?v=20261003q',
+  './chat-realtime.js?v=20261003q',
+  './avatar.js?v=20261003q',
+  './avatar-editor.js?v=20261003q',
+  './nav.js?v=20261003q',
+  './config.js?v=20261003q',
+  './pwa.js?v=20261003q',
+  './lightbox.js?v=20261003q',
+  './gestor.css?v=20261003q',
+  './gestor-calc.js?v=20261003q',
+  './gestor.js?v=20261003q',
   './logo-escavadeira.png',
   './icon-192.png',
   './icon-512.png',

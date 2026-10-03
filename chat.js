@@ -104,11 +104,6 @@ function iniciais(n) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 function lerQuery(nome) { try { return (new URL(location.href).searchParams.get(nome) || '').trim(); } catch (e) { return ''; } }
-function superAppLote(codigo, tentativa) {
-    if (typeof MINERA_SUPERAPP === 'undefined' || !MINERA_SUPERAPP) return;
-    if (!(window.MineraSuperApp && MineraSuperApp.loteNoChat)) { if ((tentativa || 0) < 30) setTimeout(() => superAppLote(codigo, (tentativa || 0) + 1), 200); return; }
-    try { MineraSuperApp.loteNoChat(codigo, T.peer, $('chat-lote-ctx')); } catch (e) { /* ignore */ }
-}
 function lerParaQuery() { return lerQuery('com') || lerQuery('para') || lerQuery('dm'); }
 function ehAdminEu() { return typeof ehAdmin === 'function' && ehAdmin(perfilAtual); }
 function visivel() { return document.visibilityState !== 'hidden'; }
@@ -170,19 +165,11 @@ function dayLabel(iso) {
     return new Date(iso).toLocaleDateString('pt-BR');
 }
 function divDiaHtml(iso) { return '<div class="wa-day-div" data-dia="' + dayKey(iso) + '"><span>' + esc(dayLabel(iso)) + '</span></div>'; }
-/* SUPERAPP: "[Lote X]" fica gravado na mensagem, mas aparece como chip pequeno (bolha) / "🛒 X ·" (prévias). */
-const _SA_ON = () => (typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP);
-const RE_LOTE_TAG = /^\s*\[Lote ([^\]]{1,50})\]\s*/;
-function chipLote(htmlEsc) {
-    if (!_SA_ON()) return htmlEsc;
-    return String(htmlEsc).replace(RE_LOTE_TAG, (_, c) => '<a class="sa-lote-chip" href="' + (typeof APP_ROOT === 'string' ? APP_ROOT : '') + 'lote-detalhe.html?codigo=' + encodeURIComponent(c.replace(/&amp;/g, '&')) + '">🛒 ' + c + '</a> ');
-}
-function semTagLote(t) { return _SA_ON() ? String(t || '').replace(RE_LOTE_TAG, (_, c) => '🛒 ' + c + ' · ') : t; }
 function snippetMsg(m) {
     if (!m) return '';
     if (m.deleted_at) return 'Mensagem apagada';
     const raw = (m.texto || '').trim();
-    if (raw && m.tipo !== 'documento') return semTagLote(raw).slice(0, 120);
+    if (raw && m.tipo !== 'documento') return raw.slice(0, 120);
     if (m.tipo === 'audio') return '🎙️ Áudio';
     if (m.tipo === 'imagem') return '📷 Foto';
     if (m.tipo === 'video') return '🎬 Vídeo';
@@ -267,7 +254,7 @@ function bubbleHtml(m) {
     const txtVisivel = m.texto && String(m.tipo) !== 'documento';
     const body = deleted
         ? '<div class="bubble-text bubble-deleted">🚫 Mensagem apagada</div>'
-        : ((txtVisivel ? '<div class="bubble-text">' + chipLote(esc(typeof AntiGolpe !== 'undefined' ? AntiGolpe.mascarar(m.texto) : m.texto)) + '</div>' : '') + renderMedia(m));
+        : ((txtVisivel ? '<div class="bubble-text">' + esc(typeof AntiGolpe !== 'undefined' ? AntiGolpe.mascarar(m.texto) : m.texto) + '</div>' : '') + renderMedia(m));
     let extra = '';
     if (sched && m.agendado_para) extra += ' · agendada p/ ' + new Date(m.agendado_para).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     if (m.editado_em && !deleted) extra += ' · editada';
@@ -510,12 +497,6 @@ async function abrirThread(contato, opts) {
     } catch (e) { /* ignore */ }
     // conversa reexibida (se estava "apagada para mim"). Amigo agora é escolha explícita (menu ⋮ → Adicionar amigo).
     if (!ehG) { try { await supabaseClient.rpc('chat_desocultar_conversa', { p_outro: contato.auth_id }); } catch (e) { /* SQL 28 opcional */ } }
-    // SUPERAPP: DM ligada a um anúncio ([Lote X] nas mensagens) → card do anúncio + Abrir carrada / Pagar pelo Banco
-    if (gen === T.gen && !lerQuery('lote')) {
-        let cod = null;
-        if (!ehG) { const ms = msgsOrdenadas(); for (let i = ms.length - 1; i >= 0 && !cod; i--) { const mm = /\[Lote ([^\]]{1,50})\]/.exec(String(ms[i].texto || '')); if (mm) cod = mm[1].trim(); } }
-        superAppLote(cod);
-    }
     if (!contatosCache.some(c => c.auth_id === contato.auth_id)) agendarInbox(300);
 }
 
@@ -820,9 +801,7 @@ async function enviarMensagem(opts) {
     if (!contatoAtivo || !contatoAtivo.auth_id) { msgErro('Selecione um contato primeiro.'); return false; }
     let texto = String(opts.texto != null ? opts.texto : (input ? input.value : '')).replace(/\s+$/, '').replace(/^\s*\n/, '');
     if (!texto.trim()) return false; // toque duplo / vazio: ignora em silêncio
-    // superapp: sempre marca [Lote X] (mesmo se o texto já cita o código) para o vendedor ver o card do anúncio na DM
-    const _sa = (typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP);
-    if (loteCtx && (_sa ? !texto.includes('[Lote ' + loteCtx + ']') : !texto.includes(loteCtx))) texto = '[Lote ' + loteCtx + '] ' + texto;
+    if (loteCtx && !texto.includes(loteCtx)) texto = '[Lote ' + loteCtx + '] ' + texto;
     if (typeof exigirDesbloqueado === 'function' && !exigirDesbloqueado(perfilAtual, 'Chat')) { msgErro('Conta bloqueada — pague a comissão no Perfil.'); return false; }
     if (typeof AntiGolpe !== 'undefined') {
         const chk = AntiGolpe.validarTexto(texto);
@@ -1085,7 +1064,7 @@ async function startRecording(fromHold) {
     if (bloqueioAtivo()) { toast('Conversa bloqueada.'); return; }
     if (!window.isSecureContext) { toastAudio('Microfone exige HTTPS.'); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toastAudio('Gravação não suportada neste navegador. Use ＋ → Documento.'); return; }
-    // 20261003p: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
+    // 20261003q: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
     // finalizava (stop() é assíncrono) e as duas escreviam no MESMO array global de pedaços:
     // a 1ª saía curtinha (0:01) e a 2ª sem o cabeçalho WebM (não tocava em lugar nenhum).
     if (gravando || iniciandoGravacao || (mediaRecorder && mediaRecorder.state !== 'inactive')) return;
@@ -2055,7 +2034,6 @@ async function init() {
     if (loteCtx && ctxEl) {
         ctxEl.textContent = 'Negociando lote: ' + loteCtx;
         ctxEl.classList.remove('oculto');
-        superAppLote(loteCtx);
         const input = $('chat-texto');
         if (input && !input.value) input.placeholder = 'Mensagem sobre o lote ' + loteCtx + '...';
     }

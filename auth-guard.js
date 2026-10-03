@@ -384,7 +384,7 @@ async function requireRole(perfil, rolesPermitidos) {
     const hit = ok.some(r => temPapel(perfil, r));
     if (!hit) {
         alert('Acesso restrito. Seus papéis: ' + (rotuloPapeis(perfil) || (perfil && perfil.tipo) || 'operador'));
-        irPara(typeof homeApp === 'function' ? homeApp() : 'inicio.html');
+        irPara('inicio.html');
         return false;
     }
     return true;
@@ -425,8 +425,6 @@ function limparModoUi() {
 
 /** Se admin e sem modo gravado → default admin. Não-admin limpa o storage. */
 function garantirModoUiPadrao(perfil) {
-    // Superapp: Admin é só um mini-app na grade — sem "modo monitoramento" que bloqueia páginas.
-    if (typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP) return null;
     if (!ehAdmin(perfil)) {
         limparModoUi();
         return null;
@@ -464,8 +462,7 @@ function enforceAdminModoPagina(perfil, paginaAtiva) {
 
 /** Destino pós-login: admin em modo monitoramento → admin.html */
 async function destinoPosLogin(user) {
-    const HOME = (typeof homeApp === 'function') ? homeApp() : 'inicio.html';
-    if (!user || !user.id) return HOME;
+    if (!user || !user.id) return 'inicio.html';
     try {
         const { data } = await supabaseClient
             .from('usuarios')
@@ -475,15 +472,15 @@ async function destinoPosLogin(user) {
         const stub = data
             ? { tipo: data.tipo, papeis: normalizarPapeis(data.papeis, data.tipo) }
             : null;
-        if (ehAdmin(stub) && !(typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP)) {
+        if (ehAdmin(stub)) {
             const m = garantirModoUiPadrao(stub);
-            if (m === 'usuario') return HOME;
+            if (m === 'usuario') return 'inicio.html';
             return 'admin.html';
         }
     } catch (e) {
         console.warn('destinoPosLogin', e);
     }
-    return HOME;
+    return 'inicio.html';
 }
 
 /** Ao sair: este aparelho para de receber push da conta (senão o próximo usuário do celular recebe avisos da conta anterior). */

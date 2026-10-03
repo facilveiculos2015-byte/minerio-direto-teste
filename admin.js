@@ -2144,7 +2144,7 @@ function bindGrokDrawer() {
     aplicarUserLabel(perfilAtual);
     if (!ehAdmin(perfilAtual)) {
         alert('Acesso restrito a administradores.');
-        irPara((typeof homeApp === 'function') ? homeApp() : 'inicio.html');
+        irPara('inicio.html');
         return;
     }
     document.body.classList.add('pagina-admin');

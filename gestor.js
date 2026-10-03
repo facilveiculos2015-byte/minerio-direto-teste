@@ -408,7 +408,7 @@
     const fCar = () => $('#form-carrada');
     function lembretes() { try { return JSON.parse(localStorage.getItem(chave('ultimos')) || '{}'); } catch (e) { return {}; } }
 
-    function abrirCarrada(id, prefill) {
+    function abrirCarrada(id) {
         const f = fCar();
         const ult = lembretes();
         fc = id ? Object.assign({}, db.carradas.find((c) => c.id === id)) : {
@@ -416,11 +416,6 @@
             carregamento_base: ult.carregamento_base || 'por_t', status: 'aberta', minerio: ult.minerio || 'Manganês',
             preco_ponto: ult.preco_ponto, frete_unit: ult.frete_unit, carregamento_unit: ult.carregamento_unit, comprador: ult.comprador
         };
-        // Superapp: carrada nova pré-preenchida a partir de uma conversa/anúncio (chat → Gestor)
-        if (!id && prefill && typeof prefill === 'object') {
-            Object.keys(prefill).forEach((k) => { if (prefill[k] != null && prefill[k] !== '') fc[k] = prefill[k]; });
-            if (prefill.preco_modo && prefill.preco_modo !== 'ponto') { fc.tabela_id = null; fc.preco_ponto = null; }
-        }
         TXT_CARRADA.forEach((k) => { if (f.elements[k]) f.elements[k].value = fc[k] || ''; });
         if (fc.data) f.elements.data.value = fc.data;
         NUM_CARRADA.forEach((k) => { if (f.elements[k]) f.elements[k].value = G.numInput(fc[k]); });
@@ -430,7 +425,7 @@
         if (!id && fc.tabela_id && !tabelasVivas().some((t) => t.id === fc.tabela_id)) fc.tabela_id = null;
         opcoesTabela(fc.tabela_id);
         estadoCarrada();
-        if (!id && !(prefill && prefill.preco_manual)) aplicarTabela(); else if (id) infoTabelaSalva();
+        if (!id) aplicarTabela(); else infoTabelaSalva();
         abrir('sheet-carrada');
     }
     function lerCarrada() {
@@ -899,15 +894,7 @@
         render();
         const h = location.hash; // limpa o # antes de empilhar a folha (senão voltar reabre)
         if (h) { try { history.replaceState(null, '', location.pathname + location.search); } catch (e) { /* ignore */ } }
-        if (h === '#nova-carrada') {
-            let pre = null;
-            try { pre = JSON.parse(sessionStorage.getItem('minera_carrada_prefill') || 'null'); sessionStorage.removeItem('minera_carrada_prefill'); } catch (e) { pre = null; }
-            abrirCarrada(null, pre);
-        } else if (/^#carrada=[0-9a-f-]{36}$/i.test(h)) {
-            const cid = h.slice(9);
-            const tenta = (n) => { if (db.carradas.some((c) => c.id === cid)) abrirCarrada(cid); else if (n < 20) setTimeout(() => tenta(n + 1), 300); };
-            tenta(0);
-        }
+        if (h === '#nova-carrada') abrirCarrada(null);
         else if (h === '#nova-despesa') abrirDespesa(null);
         puxar();
         try {

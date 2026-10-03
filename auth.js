@@ -158,7 +158,7 @@ async function irSeLogado() {
     try {
         const { data: { session } } = await supabaseClient.auth.getSession();
         if (!session) return;
-        let dest = (typeof homeApp === 'function') ? homeApp() : 'inicio.html';
+        let dest = 'inicio.html';
         if (typeof destinoPosLogin === 'function') {
             dest = await destinoPosLogin(session.user);
         }
@@ -279,7 +279,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Nova senha = os outros aparelhos que estavam nesta conta saem (quem não sabe a senha nova não continua dentro)
                 try { await supabaseClient.auth.signOut({ scope: 'others' }); } catch (eOut) { /* ignore */ }
                 msg('Senha atualizada! Os outros aparelhos desta conta foram desconectados. Entrando...', true);
-                setTimeout(() => irPara((typeof homeApp === 'function') ? homeApp() : 'inicio.html'), 600);
+                setTimeout(() => irPara('inicio.html'), 600);
             } catch (err) {
                 msg('Falha: ' + (err.message || err), false);
             }
@@ -313,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     localStorage.removeItem('minera_ref_pendente');
                 }
             } catch (ePend) { /* ignore */ }
-            let dest = (typeof homeApp === 'function') ? homeApp() : 'inicio.html';
+            let dest = 'inicio.html';
             if (typeof destinoPosLogin === 'function') {
                 dest = await destinoPosLogin(data.user);
             }
@@ -399,7 +399,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
             if (data.session) {
-                irPara((typeof homeApp === 'function') ? homeApp() : 'inicio.html');
+                irPara('inicio.html');
                 return;
             }
             document.getElementById('login-email').value = email;
