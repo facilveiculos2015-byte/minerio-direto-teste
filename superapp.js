@@ -79,7 +79,7 @@
             cardHoje('sa-c-msgs', '💬', 'Mensagens', '…', 'não lidas', 'chat.html', '#16a34a') +
             cardHoje('sa-c-banco', '🏦', 'Banco', '…', 'saldo', 'financeiro.html', '#7c3aed') +
             cardHoje('sa-c-carradas', '📒', 'Carradas', '…', 'abertas', 'gestor.html', '#2563eb') +
-            cardHoje('sa-c-novos', '🛒', 'Anúncios', '…', 'novos · 7 dias', 'inicio.html', '#F5A623') +
+            cardHoje('sa-c-novos', '🛒', 'Anúncios', '…', 'na semana', 'inicio.html', '#F5A623') +
             '</div></section>' +
             '<section aria-label="Apps"><h2 class="sa-sec">Apps</h2><div class="sa-grid">' +
             apps.map(function (a) {
@@ -102,7 +102,7 @@
             try {
                 var r = await s.from('caixa_saldos').select('saldo').eq('auth_id', uid).maybeSingle();
                 var v = r && r.data ? Number(r.data.saldo || 0) : null;
-                if (v == null) { setCard('sa-c-banco', 'Ativar', 'abra o Banco'); return; }
+                if (v == null) { setCard('sa-c-banco', 'Ativar', 'abrir o Banco'); return; }
                 var c = document.getElementById('sa-c-banco');
                 setCard('sa-c-banco', '<span class="sa-oculto-val">R$ ••••</span>', '👁 ver saldo');
                 var eye = document.createElement('button'); eye.type = 'button'; eye.className = 'sa-eye'; eye.setAttribute('aria-label', 'Mostrar saldo'); eye.textContent = '👁';
@@ -122,7 +122,7 @@
             var uf = perfil && (perfil.estado || perfil.uf);
             if (uf) q = q.eq('estado', String(uf).toUpperCase());
             var rl = await q; var nl = rl.count || 0;
-            setCard('sa-c-novos', String(nl), uf ? 'em ' + String(uf).toUpperCase() + ' · 7 dias' : 'novos · 7 dias');
+            setCard('sa-c-novos', String(nl), uf ? 'em ' + String(uf).toUpperCase() + ' · semana' : 'na semana');
             var visto = Number(localStorage.getItem('minera_sa_mkt_visto') || 0);
             if (nl && Date.now() - visto > 864e5) setBadge('marketplace', 0, 'novo');
         } catch (e) { setCard('sa-c-novos', '—', 'Marketplace'); }
@@ -170,7 +170,7 @@
         if (msgs.length) html += '<h3 class="sa-res-h">💬 Conversas</h3>' + msgs.map(function (m) {
             var href = m.grupo_id ? 'chat.html?grupo=' + m.grupo_id : 'chat.html?com=' + encodeURIComponent(m.de_auth_id === uid ? m.para_auth_id : m.de_auth_id);
             var quando = m.criado_em ? new Date(m.criado_em).toLocaleDateString('pt-BR') : '';
-            return linha(href, '💬', String(m.texto || '').slice(0, 70), (m.grupo_id ? 'Grupo · ' : '') + quando);
+            return linha(href, '💬', String(m.texto || '').replace(/^\s*\[Lote ([^\]]{1,50})\]\s*/, '🛒 $1 · ').slice(0, 70), (m.grupo_id ? 'Grupo · ' : '') + quando);
         }).join('');
         var car = (r[3] && r[3].data) || [], lan = (r[4] && r[4].data) || [];
         if (car.length || lan.length) html += '<h3 class="sa-res-h">📒 Gestor</h3>' +

@@ -170,11 +170,19 @@ function dayLabel(iso) {
     return new Date(iso).toLocaleDateString('pt-BR');
 }
 function divDiaHtml(iso) { return '<div class="wa-day-div" data-dia="' + dayKey(iso) + '"><span>' + esc(dayLabel(iso)) + '</span></div>'; }
+/* SUPERAPP: "[Lote X]" fica gravado na mensagem, mas aparece como chip pequeno (bolha) / "🛒 X ·" (prévias). */
+const _SA_ON = () => (typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP);
+const RE_LOTE_TAG = /^\s*\[Lote ([^\]]{1,50})\]\s*/;
+function chipLote(htmlEsc) {
+    if (!_SA_ON()) return htmlEsc;
+    return String(htmlEsc).replace(RE_LOTE_TAG, (_, c) => '<a class="sa-lote-chip" href="' + (typeof APP_ROOT === 'string' ? APP_ROOT : '') + 'lote-detalhe.html?codigo=' + encodeURIComponent(c.replace(/&amp;/g, '&')) + '">🛒 ' + c + '</a> ');
+}
+function semTagLote(t) { return _SA_ON() ? String(t || '').replace(RE_LOTE_TAG, (_, c) => '🛒 ' + c + ' · ') : t; }
 function snippetMsg(m) {
     if (!m) return '';
     if (m.deleted_at) return 'Mensagem apagada';
     const raw = (m.texto || '').trim();
-    if (raw && m.tipo !== 'documento') return raw.slice(0, 120);
+    if (raw && m.tipo !== 'documento') return semTagLote(raw).slice(0, 120);
     if (m.tipo === 'audio') return '🎙️ Áudio';
     if (m.tipo === 'imagem') return '📷 Foto';
     if (m.tipo === 'video') return '🎬 Vídeo';
@@ -259,7 +267,7 @@ function bubbleHtml(m) {
     const txtVisivel = m.texto && String(m.tipo) !== 'documento';
     const body = deleted
         ? '<div class="bubble-text bubble-deleted">🚫 Mensagem apagada</div>'
-        : ((txtVisivel ? '<div class="bubble-text">' + esc(typeof AntiGolpe !== 'undefined' ? AntiGolpe.mascarar(m.texto) : m.texto) + '</div>' : '') + renderMedia(m));
+        : ((txtVisivel ? '<div class="bubble-text">' + chipLote(esc(typeof AntiGolpe !== 'undefined' ? AntiGolpe.mascarar(m.texto) : m.texto)) + '</div>' : '') + renderMedia(m));
     let extra = '';
     if (sched && m.agendado_para) extra += ' · agendada p/ ' + new Date(m.agendado_para).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     if (m.editado_em && !deleted) extra += ' · editada';
@@ -1077,7 +1085,7 @@ async function startRecording(fromHold) {
     if (bloqueioAtivo()) { toast('Conversa bloqueada.'); return; }
     if (!window.isSecureContext) { toastAudio('Microfone exige HTTPS.'); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toastAudio('Gravação não suportada neste navegador. Use ＋ → Documento.'); return; }
-    // 20261003n: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
+    // 20261003o: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
     // finalizava (stop() é assíncrono) e as duas escreviam no MESMO array global de pedaços:
     // a 1ª saía curtinha (0:01) e a 2ª sem o cabeçalho WebM (não tocava em lugar nenhum).
     if (gravando || iniciandoGravacao || (mediaRecorder && mediaRecorder.state !== 'inactive')) return;
