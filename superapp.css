@@ -3,9 +3,9 @@
 .sa-ola { font-size: 1.45rem; margin: 6px 2px 12px; color: var(--text-color); }
 .sa-sec { font-size: 1.05rem; font-weight: 800; margin: 18px 2px 10px; color: var(--text-color); border: 0; padding: 0; }
 /* busca */
-.sa-busca { display: flex; align-items: center; gap: 8px; background: var(--card-bg); border: 2px solid var(--border); border-radius: 16px; padding: 0 12px; min-height: 56px; }
+.sa-busca { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center; gap: 8px; background: var(--card-bg); border: 2px solid var(--border); border-radius: 16px; padding: 0 12px; min-height: 56px; }
 .sa-busca:focus-within { border-color: var(--accent-color); }
-.sa-busca input { flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text-color); font-size: 17px; padding: 14px 0; outline: none; }
+form.sa-busca input[type=search], .sa-busca input { box-shadow: none; border-radius: 0; flex: 1; min-width: 0; border: 0; background: transparent; color: var(--text-color); font-size: 17px; padding: 14px 0; outline: none; }
 .sa-busca-res { margin-top: 10px; display: flex; flex-direction: column; gap: 8px; }
 .sa-res-h { font-size: .95rem; margin: 10px 2px 2px; color: var(--muted); border: 0; }
 .sa-res { display: flex; align-items: center; gap: 12px; min-height: 60px; padding: 8px 12px; background: var(--card-bg); border: 1px solid var(--border); border-radius: 14px; color: var(--text-color); text-decoration: none; }
@@ -74,3 +74,17 @@ html.minera-ambiente-teste .sa-appbar { padding-top: 22px; }
 .bottom-nav.bn-superapp .bn-item { flex: 1 1 33%; max-width: 33.34%; min-height: 56px; }
 .bottom-nav.bn-superapp .bn-label { font-size: 13px; font-weight: 800; }
 body.sa-has-appbar .app-back-bar { display: none !important; }
+
+/* Card do anúncio na DM: no fluxo, logo abaixo do topo flutuante (não cobre as mensagens) */
+.chat-thread-active #chat-lote-ctx.sa-lote-ctx {
+  position: relative; top: auto; left: auto; transform: none; z-index: 20; flex: 0 0 auto;
+  margin: calc(62px + env(safe-area-inset-top, 0px)) 12px 0; max-width: none; padding: 0 0 8px;
+  background: transparent; color: var(--text-color); white-space: normal; overflow: visible; font-size: inherit; border-radius: 0;
+  display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border);
+}
+.chat-thread-active #chat-lote-ctx.sa-lote-ctx.oculto { display: none; }
+.chat-thread-active #chat-lote-ctx.sa-lote-ctx .sa-lote-card { flex: 1 1 auto; min-width: 0; }
+.chat-thread-active #chat-lote-ctx.sa-lote-ctx .sa-lote-bts { margin-top: 0; flex: 0 0 auto; flex-direction: column; gap: 6px; }
+.chat-thread-active #chat-lote-ctx.sa-lote-ctx .sa-lote-bts .sa-chip-btn { min-height: 40px; padding: 6px 10px; font-size: 13px; white-space: nowrap; }
+.chat-thread-active #chat-lote-ctx.sa-lote-ctx .sa-lote-card img { width: 44px; height: 44px; flex-basis: 44px; }
+.chat-thread-active #chat-lote-ctx.sa-lote-ctx:not(.oculto) ~ .chat-msgs { padding-top: 12px !important; }

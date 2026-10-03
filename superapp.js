@@ -267,7 +267,7 @@
     async function loteNoChat(codigo, peer, ctxEl) {
         if (!ctxEl) return;
         var seq = ++loteCardSeq;
-        if (!codigo) { if (ctxEl.querySelector('.sa-lote-card')) { ctxEl.innerHTML = ''; ctxEl.classList.add('oculto'); } return; }
+        if (!codigo) { if (ctxEl.querySelector('.sa-lote-card')) { ctxEl.innerHTML = ''; ctxEl.classList.add('oculto'); ctxEl.classList.remove('sa-lote-ctx'); } return; }
         var r = {};
         try { r = await sb().from('lotes').select('codigo_lote,tipo_minerio,teor,preco,cidade,estado,imagem_url,fotos,criado_por_id,criado_por').eq('codigo_lote', codigo).maybeSingle(); } catch (e) { r = {}; }
         if (seq !== loteCardSeq) return;
