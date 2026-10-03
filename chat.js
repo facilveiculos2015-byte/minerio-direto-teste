@@ -812,7 +812,9 @@ async function enviarMensagem(opts) {
     if (!contatoAtivo || !contatoAtivo.auth_id) { msgErro('Selecione um contato primeiro.'); return false; }
     let texto = String(opts.texto != null ? opts.texto : (input ? input.value : '')).replace(/\s+$/, '').replace(/^\s*\n/, '');
     if (!texto.trim()) return false; // toque duplo / vazio: ignora em silêncio
-    if (loteCtx && !texto.includes(loteCtx)) texto = '[Lote ' + loteCtx + '] ' + texto;
+    // superapp: sempre marca [Lote X] (mesmo se o texto já cita o código) para o vendedor ver o card do anúncio na DM
+    const _sa = (typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP);
+    if (loteCtx && (_sa ? !texto.includes('[Lote ' + loteCtx + ']') : !texto.includes(loteCtx))) texto = '[Lote ' + loteCtx + '] ' + texto;
     if (typeof exigirDesbloqueado === 'function' && !exigirDesbloqueado(perfilAtual, 'Chat')) { msgErro('Conta bloqueada — pague a comissão no Perfil.'); return false; }
     if (typeof AntiGolpe !== 'undefined') {
         const chk = AntiGolpe.validarTexto(texto);
@@ -1075,7 +1077,7 @@ async function startRecording(fromHold) {
     if (bloqueioAtivo()) { toast('Conversa bloqueada.'); return; }
     if (!window.isSecureContext) { toastAudio('Microfone exige HTTPS.'); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toastAudio('Gravação não suportada neste navegador. Use ＋ → Documento.'); return; }
-    // 20261003l: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
+    // 20261003m: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
     // finalizava (stop() é assíncrono) e as duas escreviam no MESMO array global de pedaços:
     // a 1ª saía curtinha (0:01) e a 2ª sem o cabeçalho WebM (não tocava em lugar nenhum).
     if (gravando || iniciandoGravacao || (mediaRecorder && mediaRecorder.state !== 'inactive')) return;
