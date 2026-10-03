@@ -11,9 +11,8 @@ const MINERA_DB = {
         url: 'https://eelbuaxgfzvxosatwcxk.supabase.co',
         anon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVlbGJ1YXhnZnp2eG9zYXR3Y3hrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg0NjI2MTAsImV4cCI6MjEwNDAzODYxMH0.ecoI2ClOQY9VKTcaMc1NoFTTvo0L-sadqfqHyDwxDTA'
     },
-    // ⚠️ TESTE ainda aponta para o banco de PRODUÇÃO (dados reais). Quando o projeto Supabase
-    // 'minera-teste' existir, troque por: { url: 'https://<ref-teste>.supabase.co', anon: '<anon-key-teste>' }
-    teste: null
+    // Banco do TESTE (projeto Supabase 'minera-teste'). Para voltar a usar a produção no teste: teste: null
+    teste: { url: 'https://ldzefbwdghqiudafqjar.supabase.co', anon: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImxkemVmYndkZ2hxaXVkYWZxamFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEwMDAxMTMsImV4cCI6MjEwNjU3NjExM30.7Fcc_mExeItmsSi5iKZzYkPpMYuSmgH-xnpmn9xEGUA' }
 };
 const MINERA_AMBIENTE = (function () {
     try { return MINERA_HOSTS_PRODUCAO.indexOf(String(location.hostname).toLowerCase()) >= 0 ? 'producao' : 'teste'; }
