@@ -15,17 +15,17 @@
 .sa-res-txt span { font-size: 14px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sa-res-chev { font-size: 26px; color: var(--muted); }
 /* Hoje */
-.sa-hoje-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.sa-hoje-card { position: relative; display: flex; gap: 10px; align-items: center; min-height: 84px; padding: 12px; border-radius: 18px; text-decoration: none; color: var(--text-color);
+.sa-hoje-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.sa-hoje-card { position: relative; min-width: 0; overflow: hidden; display: flex; gap: 10px; align-items: center; min-height: 84px; padding: 12px; border-radius: 18px; text-decoration: none; color: var(--text-color);
   background: linear-gradient(135deg, color-mix(in srgb, var(--sa-cor) 22%, var(--card-bg)), var(--card-bg)); border: 1px solid color-mix(in srgb, var(--sa-cor) 45%, var(--border)); }
 .sa-hoje-ico { font-size: 30px; line-height: 1; }
-.sa-hoje-txt { display: flex; flex-direction: column; min-width: 0; }
+.sa-hoje-txt { display: flex; flex-direction: column; min-width: 0; flex: 1; }
 .sa-hoje-tit { font-size: 14px; font-weight: 700; color: var(--muted); }
 .sa-hoje-val { font-size: 22px; font-weight: 900; line-height: 1.15; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sa-hoje-sub { font-size: 13px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sa-eye { position: absolute; top: 6px; right: 6px; width: 44px; height: 44px; border-radius: 50%; border: 0; background: transparent; font-size: 20px; cursor: pointer; }
 /* grade de apps */
-.sa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px 8px; }
+.sa-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 8px; }
 .sa-app { display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; color: var(--text-color); padding: 6px 2px; border-radius: 16px; min-height: 104px; -webkit-tap-highlight-color: transparent; }
 .sa-app:active .sa-app-ico { transform: scale(.94); }
 .sa-app-ico { position: relative; display: flex; align-items: center; justify-content: center; width: 72px; height: 72px; border-radius: 22px; font-size: 38px; line-height: 1;
@@ -61,7 +61,7 @@ html.minera-ambiente-teste .sa-appbar { padding-top: 22px; }
 .sa-appbar-tit { display: flex; align-items: center; gap: 8px; font-size: 19px; font-weight: 900; text-shadow: 0 1px 2px rgba(0,0,0,.3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .sa-appbar-ico { font-size: 24px; }
 /* card do anúncio no chat + atalhos */
-.sa-lote-card { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 14px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-color); }
+.sa-lote-card { text-decoration: none; display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 14px; background: var(--card-bg); border: 1px solid var(--border); color: var(--text-color); }
 .sa-lote-card img { width: 56px; height: 56px; border-radius: 10px; object-fit: cover; flex: 0 0 56px; background: #0003; }
 .sa-lote-card .sa-lote-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
 .sa-lote-card .sa-lote-txt strong { font-size: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -73,3 +73,4 @@ html.minera-ambiente-teste .sa-appbar { padding-top: 22px; }
 /* barra inferior mínima: Início · Chat · Perfil */
 .bottom-nav.bn-superapp .bn-item { flex: 1 1 33%; max-width: 33.34%; min-height: 56px; }
 .bottom-nav.bn-superapp .bn-label { font-size: 13px; font-weight: 800; }
+body.sa-has-appbar .app-back-bar { display: none !important; }

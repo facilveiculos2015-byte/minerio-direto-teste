@@ -104,8 +104,10 @@ function iniciais(n) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 function lerQuery(nome) { try { return (new URL(location.href).searchParams.get(nome) || '').trim(); } catch (e) { return ''; } }
-function superAppLote(codigo) {
-    try { if (window.MineraSuperApp && MineraSuperApp.loteNoChat) MineraSuperApp.loteNoChat(codigo, T.peer, $('chat-lote-ctx')); } catch (e) { /* ignore */ }
+function superAppLote(codigo, tentativa) {
+    if (typeof MINERA_SUPERAPP === 'undefined' || !MINERA_SUPERAPP) return;
+    if (!(window.MineraSuperApp && MineraSuperApp.loteNoChat)) { if ((tentativa || 0) < 30) setTimeout(() => superAppLote(codigo, (tentativa || 0) + 1), 200); return; }
+    try { MineraSuperApp.loteNoChat(codigo, T.peer, $('chat-lote-ctx')); } catch (e) { /* ignore */ }
 }
 function lerParaQuery() { return lerQuery('com') || lerQuery('para') || lerQuery('dm'); }
 function ehAdminEu() { return typeof ehAdmin === 'function' && ehAdmin(perfilAtual); }
@@ -1073,7 +1075,7 @@ async function startRecording(fromHold) {
     if (bloqueioAtivo()) { toast('Conversa bloqueada.'); return; }
     if (!window.isSecureContext) { toastAudio('Microfone exige HTTPS.'); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toastAudio('Gravação não suportada neste navegador. Use ＋ → Documento.'); return; }
-    // 20261003j: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
+    // 20261003k: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
     // finalizava (stop() é assíncrono) e as duas escreviam no MESMO array global de pedaços:
     // a 1ª saía curtinha (0:01) e a 2ª sem o cabeçalho WebM (não tocava em lugar nenhum).
     if (gravando || iniciandoGravacao || (mediaRecorder && mediaRecorder.state !== 'inactive')) return;

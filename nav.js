@@ -419,7 +419,7 @@ function garantirHeaderModoUiBtn(perfil) {
     /** Sticky SEMPRE no modo usuário — não depende de header.header-row (Início/Chat/Perfil). */
     
 /** Páginas raiz da bottom-nav — não injetam Voltar de página. */
-const PAGINAS_RAIZ = new Set(['inicio', 'lotes', 'chat', 'perfil', 'index', 'entrar']);
+const PAGINAS_RAIZ = new Set(['inicio', 'lotes', 'chat', 'perfil', 'index', 'entrar', 'apps']);
 
 function paginaAtualId() {
     const path = (location.pathname || '').split('/').pop() || '';
@@ -616,11 +616,11 @@ function garantirSuperApp(paginaAtiva, perfil) {
     const root = (typeof APP_ROOT === 'string' ? APP_ROOT : '');
     const go = () => { try { window.MineraSuperApp.iniciar(paginaAtiva, perfil); } catch (e) { console.warn('superapp', e); } };
     if (!document.getElementById('sa-css')) {
-        const l = document.createElement('link'); l.id = 'sa-css'; l.rel = 'stylesheet'; l.href = root + 'superapp.css?v=20261003j'; document.head.appendChild(l);
+        const l = document.createElement('link'); l.id = 'sa-css'; l.rel = 'stylesheet'; l.href = root + 'superapp.css?v=20261003k'; document.head.appendChild(l);
     }
     if (window.MineraSuperApp) { go(); return; }
     let s = document.getElementById('sa-js');
-    if (!s) { s = document.createElement('script'); s.id = 'sa-js'; s.src = root + 'superapp.js?v=20261003j'; document.head.appendChild(s); }
+    if (!s) { s = document.createElement('script'); s.id = 'sa-js'; s.src = root + 'superapp.js?v=20261003k'; document.head.appendChild(s); }
     s.addEventListener('load', go);
 }
 
@@ -761,7 +761,7 @@ function montarNav(paginaAtiva, perfil) {
 /** Logo escavadeira ao lado do título Minera Pará (toda página autenticada) */
 function garantirBrandLogo() {
     const root = (typeof APP_ROOT === 'string' ? APP_ROOT : '');
-    const src = root + 'logo-escavadeira.png?v=20261003j';
+    const src = root + 'logo-escavadeira.png?v=20261003k';
     document.querySelectorAll('header.header-row h1, header.auth-header h1').forEach(h1 => {
         // Already wrapped in brand-row with logo
         const existingRow = h1.closest('.brand-row');

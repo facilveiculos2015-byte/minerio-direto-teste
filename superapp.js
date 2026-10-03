@@ -73,13 +73,13 @@
         box.innerHTML =
             '<h1 class="sa-ola">' + saud + (nome ? ', ' + esc(nome.split(' ')[0]) : '') + '</h1>' +
             '<form class="sa-busca" id="sa-busca-form" role="search" onsubmit="return false">' +
-            '<span aria-hidden="true">🔎</span><input type="search" id="sa-busca" placeholder="Buscar anúncios, pessoas, conversas, carradas…" autocomplete="off" aria-label="Busca geral"></form>' +
+            '<span aria-hidden="true">🔎</span><input type="search" id="sa-busca" placeholder="Buscar em tudo…" autocomplete="off" aria-label="Busca geral"></form>' +
             '<div id="sa-busca-res" class="sa-busca-res oculto" aria-live="polite"></div>' +
             '<section id="sa-hoje" aria-label="Hoje"><h2 class="sa-sec">Hoje</h2><div class="sa-hoje-grid">' +
             cardHoje('sa-c-msgs', '💬', 'Mensagens', '…', 'não lidas', 'chat.html', '#16a34a') +
             cardHoje('sa-c-banco', '🏦', 'Banco', '…', 'saldo', 'financeiro.html', '#7c3aed') +
             cardHoje('sa-c-carradas', '📒', 'Carradas', '…', 'abertas', 'gestor.html', '#2563eb') +
-            cardHoje('sa-c-novos', '🛒', 'Anúncios novos', '…', 'últimos 7 dias', 'inicio.html', '#F5A623') +
+            cardHoje('sa-c-novos', '🛒', 'Anúncios', '…', 'novos · 7 dias', 'inicio.html', '#F5A623') +
             '</div></section>' +
             '<section aria-label="Apps"><h2 class="sa-sec">Apps</h2><div class="sa-grid">' +
             apps.map(function (a) {
@@ -104,9 +104,9 @@
                 var v = r && r.data ? Number(r.data.saldo || 0) : null;
                 if (v == null) { setCard('sa-c-banco', 'Ativar', 'abra o Banco'); return; }
                 var c = document.getElementById('sa-c-banco');
-                setCard('sa-c-banco', '<span class="sa-oculto-val">R$ ••••</span>', 'toque no 👁 para ver');
+                setCard('sa-c-banco', '<span class="sa-oculto-val">R$ ••••</span>', '👁 ver saldo');
                 var eye = document.createElement('button'); eye.type = 'button'; eye.className = 'sa-eye'; eye.setAttribute('aria-label', 'Mostrar saldo'); eye.textContent = '👁';
-                eye.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); var on2 = eye.classList.toggle('on'); setCard('sa-c-banco', on2 ? esc(brl(v)) : '<span class="sa-oculto-val">R$ ••••</span>', on2 ? 'saldo' : 'toque no 👁 para ver'); });
+                eye.addEventListener('click', function (ev) { ev.preventDefault(); ev.stopPropagation(); var on2 = eye.classList.toggle('on'); setCard('sa-c-banco', on2 ? esc(brl(v)) : '<span class="sa-oculto-val">R$ ••••</span>', on2 ? 'saldo' : '👁 ver saldo'); });
                 if (c) c.appendChild(eye);
             } catch (e) { setCard('sa-c-banco', '—', 'saldo indisponível'); }
         });
@@ -122,7 +122,7 @@
             var uf = perfil && (perfil.estado || perfil.uf);
             if (uf) q = q.eq('estado', String(uf).toUpperCase());
             var rl = await q; var nl = rl.count || 0;
-            setCard('sa-c-novos', String(nl), uf ? 'em ' + String(uf).toUpperCase() + ' · 7 dias' : 'últimos 7 dias');
+            setCard('sa-c-novos', String(nl), uf ? 'em ' + String(uf).toUpperCase() + ' · 7 dias' : 'novos · 7 dias');
             var visto = Number(localStorage.getItem('minera_sa_mkt_visto') || 0);
             if (nl && Date.now() - visto > 864e5) setBadge('marketplace', 0, 'novo');
         } catch (e) { setCard('sa-c-novos', '—', 'Marketplace'); }
@@ -134,6 +134,7 @@
         var inp = document.getElementById('sa-busca'); if (!inp) return;
         inp.addEventListener('input', function () { clearTimeout(buscaT); buscaT = setTimeout(function () { buscar(inp.value.trim()); }, 320); });
     }
+    function dmy(d) { var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(d || '')); return m ? m[3] + '/' + m[2] : (d || ''); }
     function linha(href, ico, tit, sub) {
         return '<a class="sa-res" href="' + R + href + '"><span class="sa-res-ico" aria-hidden="true">' + ico + '</span><span class="sa-res-txt"><strong>' + esc(tit) + '</strong>' +
             (sub ? '<span>' + esc(sub) + '</span>' : '') + '</span><span class="sa-res-chev" aria-hidden="true">›</span></a>';
@@ -173,8 +174,8 @@
         }).join('');
         var car = (r[3] && r[3].data) || [], lan = (r[4] && r[4].data) || [];
         if (car.length || lan.length) html += '<h3 class="sa-res-h">📒 Gestor</h3>' +
-            car.map(function (c) { return linha('gestor.html#carrada=' + c.id, '🚛', 'Carrada ' + (c.minerio || '') + (c.comprador ? ' · ' + c.comprador : ''), (c.data || '') + ' · ' + c.status + (c.valor_venda ? ' · ' + brl(c.valor_venda) : '')); }).join('') +
-            lan.map(function (l) { return linha('gestor.html', l.tipo === 'entrada' ? '➕' : '➖', l.descricao || 'Lançamento', (l.data || '') + ' · ' + brl(l.valor)); }).join('');
+            car.map(function (c) { return linha('gestor.html#carrada=' + c.id, '🚛', 'Carrada ' + (c.minerio || '') + (c.comprador ? ' · ' + c.comprador : ''), dmy(c.data) + ' · ' + c.status + (c.valor_venda ? ' · ' + brl(c.valor_venda) : '')); }).join('') +
+            lan.map(function (l) { return linha('gestor.html', l.tipo === 'entrada' ? '➕' : '➖', l.descricao || 'Lançamento', dmy(l.data) + ' · ' + brl(l.valor)); }).join('');
         box.innerHTML = html || '<p class="sub">Nada encontrado para “' + esc(t) + '”.</p>';
     }
 
@@ -267,7 +268,8 @@
         if (!ctxEl) return;
         var seq = ++loteCardSeq;
         if (!codigo) { if (ctxEl.querySelector('.sa-lote-card')) { ctxEl.innerHTML = ''; ctxEl.classList.add('oculto'); } return; }
-        var r = await sb().from('lotes').select('codigo_lote,tipo_minerio,teor,preco,cidade,estado,imagem_url,fotos,criado_por_id,criado_por').eq('codigo_lote', codigo).maybeSingle().catch(function () { return {}; });
+        var r = {};
+        try { r = await sb().from('lotes').select('codigo_lote,tipo_minerio,teor,preco,cidade,estado,imagem_url,fotos,criado_por_id,criado_por').eq('codigo_lote', codigo).maybeSingle(); } catch (e) { r = {}; }
         if (seq !== loteCardSeq) return;
         var l = r && r.data;
         if (!l) return;
