@@ -58,14 +58,15 @@ function irPara(pagina) {
             '#minera-faixa-teste{position:fixed;top:0;left:0;right:0;z-index:2147483000;pointer-events:none;' +
             'background:repeating-linear-gradient(45deg,#b91c1c,#b91c1c 10px,#991b1b 10px,#991b1b 20px);color:#fff;' +
             'font:700 11px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;letter-spacing:.04em;text-align:center;' +
-            'padding:calc(env(safe-area-inset-top,0px) + 3px) 6px 3px;box-shadow:0 1px 4px rgba(0,0,0,.35);opacity:.92}' +
+            'padding:calc(env(safe-area-inset-top,0px) + 3px) 6px 3px;box-shadow:0 1px 4px rgba(0,0,0,.35);opacity:.92;' +
+            'white-space:nowrap;overflow:hidden;text-overflow:ellipsis}' +
             '#minera-faixa-teste small{font-weight:600;opacity:.9;letter-spacing:0}';
         document.head.appendChild(st);
         const d = document.createElement('div');
         d.id = 'minera-faixa-teste';
         d.setAttribute('role', 'status');
         d.innerHTML = 'AMBIENTE DE TESTE — Minério Direto' +
-            (MINERA_DB_COMPARTILHADO ? ' <small>· banco de PRODUÇÃO (dados reais)</small>' : ' <small>· banco de teste</small>');
+            (MINERA_DB_COMPARTILHADO ? ' <small>· banco REAL</small>' : ' <small>· banco de teste</small>');
         document.body.appendChild(d);
     }
     if (document.body) faixa();
