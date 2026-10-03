@@ -40,6 +40,11 @@ const APP_ROOT = (function () {
     } catch (e) { /* fallback abaixo */ }
     try { return /^\/minera-app(\/|$)/.test(location.pathname) ? '/minera-app/' : '/'; } catch (e) { return '/'; }
 })();
+/** SUPERAPP (tela inicial em grade de apps): por enquanto SÓ no ambiente de teste.
+ *  Para ligar em produção depois de aprovado: troque por  const MINERA_SUPERAPP = true; */
+const MINERA_SUPERAPP = MINERA_TESTE;
+/** Página inicial depois do login. */
+function homeApp() { return MINERA_SUPERAPP ? 'apps.html' : 'inicio.html'; }
 /** URL pública canônica (links de convite/compartilhamento). No teste usa o próprio endereço do teste. */
 const APP_PUBLIC_URL = MINERA_TESTE ? (location.origin + APP_ROOT) : 'https://minerapara.com.br/';
 function irPara(pagina) {

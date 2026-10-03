@@ -384,7 +384,7 @@ async function requireRole(perfil, rolesPermitidos) {
     const hit = ok.some(r => temPapel(perfil, r));
     if (!hit) {
         alert('Acesso restrito. Seus papéis: ' + (rotuloPapeis(perfil) || (perfil && perfil.tipo) || 'operador'));
-        irPara('inicio.html');
+        irPara(typeof homeApp === 'function' ? homeApp() : 'inicio.html');
         return false;
     }
     return true;
@@ -462,7 +462,8 @@ function enforceAdminModoPagina(perfil, paginaAtiva) {
 
 /** Destino pós-login: admin em modo monitoramento → admin.html */
 async function destinoPosLogin(user) {
-    if (!user || !user.id) return 'inicio.html';
+    const HOME = (typeof homeApp === 'function') ? homeApp() : 'inicio.html';
+    if (!user || !user.id) return HOME;
     try {
         const { data } = await supabaseClient
             .from('usuarios')
@@ -474,13 +475,13 @@ async function destinoPosLogin(user) {
             : null;
         if (ehAdmin(stub)) {
             const m = garantirModoUiPadrao(stub);
-            if (m === 'usuario') return 'inicio.html';
+            if (m === 'usuario') return HOME;
             return 'admin.html';
         }
     } catch (e) {
         console.warn('destinoPosLogin', e);
     }
-    return 'inicio.html';
+    return HOME;
 }
 
 /** Ao sair: este aparelho para de receber push da conta (senão o próximo usuário do celular recebe avisos da conta anterior). */

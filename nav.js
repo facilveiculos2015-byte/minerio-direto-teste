@@ -610,8 +610,23 @@ function garantirBtnSair(paginaAtiva) {
     else btn.classList.add('oculto');
 }
 
+/** SUPERAPP: carrega superapp.css/js (só quando MINERA_SUPERAPP) e inicia o mini-app da página. */
+function garantirSuperApp(paginaAtiva, perfil) {
+    if (typeof MINERA_SUPERAPP === 'undefined' || !MINERA_SUPERAPP) return;
+    const root = (typeof APP_ROOT === 'string' ? APP_ROOT : '');
+    const go = () => { try { window.MineraSuperApp.iniciar(paginaAtiva, perfil); } catch (e) { console.warn('superapp', e); } };
+    if (!document.getElementById('sa-css')) {
+        const l = document.createElement('link'); l.id = 'sa-css'; l.rel = 'stylesheet'; l.href = root + 'superapp.css?v=20261003j'; document.head.appendChild(l);
+    }
+    if (window.MineraSuperApp) { go(); return; }
+    let s = document.getElementById('sa-js');
+    if (!s) { s = document.createElement('script'); s.id = 'sa-js'; s.src = root + 'superapp.js?v=20261003j'; document.head.appendChild(s); }
+    s.addEventListener('load', go);
+}
+
 function montarNav(paginaAtiva, perfil) {
     garantirBrandLogo();
+    garantirSuperApp(paginaAtiva, perfil);
     garantirHeaderNotifBtn();
 
     // Modo UI admin: default + bloqueio de páginas de cliente
@@ -698,7 +713,11 @@ function montarNav(paginaAtiva, perfil) {
         bar.removeAttribute('aria-hidden');
 
         const iniciais = iniciaisNome(perfil && perfil.nome);
-        bar.innerHTML = NAV_PRIMARIOS.map(it => {
+        const navItens = (typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP)
+            ? [Object.assign({}, NAV_PRIMARIOS[0], { id: 'apps', label: 'Início', href: 'apps.html' }), NAV_PRIMARIOS[3], NAV_PRIMARIOS[4]]
+            : NAV_PRIMARIOS;
+        bar.classList.toggle('bn-superapp', navItens !== NAV_PRIMARIOS);
+        bar.innerHTML = navItens.map(it => {
             const on = (it.id === paginaAtiva || (it.id === 'lotes' && paginaAtiva === 'novo')) ? ' on' : '';
             if (it.special) {
                 return '<a class="bn-item bn-novo' + on + '" href="' + APP_ROOT + it.href + '" title="Novo">' +
@@ -896,6 +915,7 @@ const MineraNotif = (function () {
     function updateBadge(n) {
         dmBadgeCount = Number(n) || 0;
         renderCombinedBadge();
+        try { window.dispatchEvent(new CustomEvent('minera:unread', { detail: dmBadgeCount })); } catch (e) { /* ignore */ }
     }
 
     /** Badge na aba Chat da barra inferior (mesma contagem de DMs não lidas do sino). */
@@ -1380,7 +1400,7 @@ const MineraNotif = (function () {
         if (document.getElementById('notif-lembrete')) return true;
         return started && (!primeiroPollFeito || lembretePendente);
     }
-    return { start, poll, agendarPoll, marcarEntregue, updateBadge, setAdminEmpPendentes, setAdminAlertas, renderCombinedBadge, showBrowserNotif, avaliarLembrete, lembreteOcupado };
+    return { count: () => dmBadgeCount, start, poll, agendarPoll, marcarEntregue, updateBadge, setAdminEmpPendentes, setAdminAlertas, renderCombinedBadge, showBrowserNotif, avaliarLembrete, lembreteOcupado };
 })();
 window.MineraNotif = MineraNotif;
 

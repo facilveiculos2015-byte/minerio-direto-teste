@@ -104,6 +104,9 @@ function iniciais(n) {
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 function lerQuery(nome) { try { return (new URL(location.href).searchParams.get(nome) || '').trim(); } catch (e) { return ''; } }
+function superAppLote(codigo) {
+    try { if (window.MineraSuperApp && MineraSuperApp.loteNoChat) MineraSuperApp.loteNoChat(codigo, T.peer, $('chat-lote-ctx')); } catch (e) { /* ignore */ }
+}
 function lerParaQuery() { return lerQuery('com') || lerQuery('para') || lerQuery('dm'); }
 function ehAdminEu() { return typeof ehAdmin === 'function' && ehAdmin(perfilAtual); }
 function visivel() { return document.visibilityState !== 'hidden'; }
@@ -497,6 +500,12 @@ async function abrirThread(contato, opts) {
     } catch (e) { /* ignore */ }
     // conversa reexibida (se estava "apagada para mim"). Amigo agora é escolha explícita (menu ⋮ → Adicionar amigo).
     if (!ehG) { try { await supabaseClient.rpc('chat_desocultar_conversa', { p_outro: contato.auth_id }); } catch (e) { /* SQL 28 opcional */ } }
+    // SUPERAPP: DM ligada a um anúncio ([Lote X] nas mensagens) → card do anúncio + Abrir carrada / Pagar pelo Banco
+    if (gen === T.gen && !lerQuery('lote')) {
+        let cod = null;
+        if (!ehG) { const ms = msgsOrdenadas(); for (let i = ms.length - 1; i >= 0 && !cod; i--) { const mm = /\[Lote ([^\]]{1,50})\]/.exec(String(ms[i].texto || '')); if (mm) cod = mm[1].trim(); } }
+        superAppLote(cod);
+    }
     if (!contatosCache.some(c => c.auth_id === contato.auth_id)) agendarInbox(300);
 }
 
@@ -2034,6 +2043,7 @@ async function init() {
     if (loteCtx && ctxEl) {
         ctxEl.textContent = 'Negociando lote: ' + loteCtx;
         ctxEl.classList.remove('oculto');
+        superAppLote(loteCtx);
         const input = $('chat-texto');
         if (input && !input.value) input.placeholder = 'Mensagem sobre o lote ' + loteCtx + '...';
     }

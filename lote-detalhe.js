@@ -84,7 +84,22 @@
             '<span>Anunciante: <strong>' + esc(data.criado_por || 'Usuário') + '</strong></span></p>' +
             '<div style="display:flex;flex-wrap:wrap;gap:10px">' +
             '<a class="btn-ok" href="' + nego + '">Negociar no chat</a>' +
+            ((typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP)
+                ? (data.criado_por_id && perfil && data.criado_por_id === perfil.auth_id
+                    ? '<a class="sa-chip-btn sa-pri" href="' + APP_ROOT + 'gestor.html#nova-carrada" data-sa-venda="1">📒 Lançar venda no Gestor</a>'
+                    : '<a class="sa-chip-btn sa-banco" href="' + APP_ROOT + 'financeiro.html#pagar">🏦 Pagar pelo Banco</a>')
+                : '') +
             '</div>';
+        const venda = box.querySelector('[data-sa-venda]');
+        if (venda) venda.addEventListener('click', function () {
+            try {
+                sessionStorage.setItem('minera_carrada_prefill', JSON.stringify({
+                    minerio: data.tipo_minerio || null, teor: data.teor != null ? Number(data.teor) : null,
+                    observacao: 'Venda do lote ' + codigo + (data.preco ? ' · preço do anúncio R$ ' + data.preco + ' (confira a unidade)' : ''),
+                    preco_modo: data.preco ? 'tonelada' : undefined, preco_t_informado: data.preco ? Number(data.preco) : undefined, preco_manual: !!data.preco
+                }));
+            } catch (e2) { /* ignore */ }
+        });
     } catch (e) {
         console.error(e);
         box.innerHTML = '<p class="erro">Falha ao carregar anúncio.</p>';
