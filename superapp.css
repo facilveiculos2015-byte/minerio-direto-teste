@@ -95,3 +95,10 @@ body.sa-has-appbar .app-back-bar { display: none !important; }
 /* tag [Lote X] na bolha → chip */
 .sa-lote-chip { display: inline-flex; align-items: center; gap: 3px; max-width: 100%; padding: 1px 8px; margin: 0 2px 3px 0; border-radius: 10px; font-size: 11.5px; font-weight: 700; line-height: 1.5; text-decoration: none; vertical-align: 1px;
   background: color-mix(in srgb, currentColor 12%, transparent); color: inherit; opacity: .85; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* telas estreitas: card em largura total, botões em linha abaixo (nome do anúncio não espreme) */
+@media (max-width: 380px) {
+  .chat-thread-active #chat-lote-ctx.sa-lote-ctx { flex-wrap: wrap; }
+  .chat-thread-active #chat-lote-ctx.sa-lote-ctx .sa-lote-card { flex: 1 1 100%; padding: 6px 8px; }
+  .chat-thread-active #chat-lote-ctx.sa-lote-ctx .sa-lote-bts { flex: 1 1 100%; flex-direction: row; }
+  .chat-thread-active #chat-lote-ctx.sa-lote-ctx .sa-lote-bts .sa-chip-btn { flex: 1 1 0; justify-content: center; min-height: 38px; }
+}
