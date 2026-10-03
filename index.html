@@ -442,6 +442,7 @@
     var logado = false;
     try {
         var raw = localStorage.getItem('sb-eelbuaxgfzvxosatwcxk-auth-token');
+        if (!raw) { for (var ki = 0; ki < localStorage.length; ki++) { var kk = localStorage.key(ki); if (/^sb-[a-z0-9]+-auth-token$/.test(kk || '')) { raw = localStorage.getItem(kk); break; } } }
         if (raw) {
             var j = JSON.parse(raw); var sess = j && (j.currentSession || j);
             logado = !!(sess && (sess.refresh_token || sess.access_token));
@@ -539,6 +540,23 @@
     if ('serviceWorker' in navigator) {
         window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}); });
     }
+
+    /* Faixa "AMBIENTE DE TESTE" (mesma regra do config.js: fora de minerapara.com.br = teste). */
+    try {
+        var hp = String(location.hostname).toLowerCase();
+        if (hp !== 'minerapara.com.br' && hp !== 'www.minerapara.com.br' && !d.getElementById('minera-faixa-teste')) {
+            var fst = d.createElement('style');
+            fst.textContent = '#minera-faixa-teste{position:fixed;top:0;left:0;right:0;z-index:2147483000;pointer-events:none;' +
+                'background:repeating-linear-gradient(45deg,#b91c1c,#b91c1c 10px,#991b1b 10px,#991b1b 20px);color:#fff;' +
+                'font:700 11px/1.2 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;letter-spacing:.04em;text-align:center;' +
+                'padding:calc(env(safe-area-inset-top,0px) + 3px) 6px 3px;box-shadow:0 1px 4px rgba(0,0,0,.35);opacity:.92}';
+            d.head.appendChild(fst);
+            var fd = d.createElement('div');
+            fd.id = 'minera-faixa-teste'; fd.setAttribute('role', 'status');
+            fd.textContent = 'AMBIENTE DE TESTE — Minério Direto';
+            d.body.appendChild(fd);
+        }
+    } catch (e) {}
 })();
 </script>
 </body>

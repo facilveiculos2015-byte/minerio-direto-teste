@@ -6,8 +6,8 @@
     <title>Minera Pará</title>
     <meta name="description" content="Te chamaram pra negociar com mais segurança no Minera Pará. Cadastre-se — cada um vê só a própria conta.">
     <meta name="theme-color" content="#F5A623">
-    <link rel="icon" type="image/png" href="/icon-192.png">
-    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="icon-192.png">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
 
     <!-- Open Graph / WhatsApp / Facebook -->
     <meta property="og:type" content="website">
@@ -65,7 +65,14 @@
             }
             path = rest;
         }
-        var APP = /^\/minera-app(\/|$)/.test(location.pathname) && location.hostname === 'facilveiculos2015-byte.github.io' ? '/minera-app/' : '/';
+        // Base do app: em *.github.io (project site) é a 1ª pasta (/minera-app/, /minerio-direto-teste/…);
+        // em domínio próprio / Netlify é a raiz.
+        var APP = '/';
+        if (/\.github\.io$/i.test(location.hostname)) {
+            var seg = /^\/([^\/]+)\//.exec(location.pathname + '/');
+            if (seg && seg[1]) APP = '/' + seg[1] + '/';
+        }
+        try { var bs = document.createElement('base'); bs.href = APP; document.head.appendChild(bs); } catch (eb) { /* ignore */ }
         var code = '';
         var m = path.match(/\/c\/([A-Za-z0-9_-]+)\/?$/i);
         if (m) code = String(m[1] || '').toUpperCase();
@@ -95,12 +102,12 @@
 </head>
 <body>
     <div class="box">
-        <img class="logo" src="/logo-escavadeira.png" alt="Minera Pará" width="96" height="96">
+        <img class="logo" src="logo-escavadeira.png" alt="Minera Pará" width="96" height="96">
         <h1>Minera Pará</h1>
         <p>Abrindo o Minera Pará…</p>
         <noscript>
             <p>JavaScript desativado. Abra o app manualmente:</p>
-            <a href="/entrar.html">Entrar no Minera Pará</a>
+            <a href="entrar.html">Entrar no Minera Pará</a>
         </noscript>
     </div>
 </body>

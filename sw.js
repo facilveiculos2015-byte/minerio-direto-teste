@@ -5,7 +5,11 @@
  *  - JS/CSS/demais: cache 'no-cache' (revalida com ETag → atualiza na hora)
  *  - version.json: nunca cacheado (checagem de build do pwa.js)
  */
-const CACHE = 'minera-shell-20261003j';
+const CACHE_PROD = 'minera-shell-20261003j';
+/* Teste (github.io/netlify) usa outro prefixo: nunca colide com produção nem com outros apps da mesma origem. */
+const IS_PROD_HOST = /^(www\.)?minerapara\.com\.br$/i.test(self.location.hostname);
+const CACHE_PREFIX = IS_PROD_HOST ? 'minera-shell-' : 'minerio-teste-shell-';
+const CACHE = IS_PROD_HOST ? CACHE_PROD : CACHE_PROD.replace(/^minera-shell-/, CACHE_PREFIX);
 const PRECACHE = [
   './style.css?v=20261003j',
   './chat-realtime.js?v=20261003j',
@@ -70,7 +74,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== CACHE && (k.indexOf(CACHE_PREFIX) === 0 || (IS_PROD_HOST && /^minera-/.test(k)))).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
