@@ -425,6 +425,8 @@ function limparModoUi() {
 
 /** Se admin e sem modo gravado → default admin. Não-admin limpa o storage. */
 function garantirModoUiPadrao(perfil) {
+    // Superapp: Admin é só um mini-app na grade — sem "modo monitoramento" que bloqueia páginas.
+    if (typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP) return null;
     if (!ehAdmin(perfil)) {
         limparModoUi();
         return null;
@@ -473,7 +475,7 @@ async function destinoPosLogin(user) {
         const stub = data
             ? { tipo: data.tipo, papeis: normalizarPapeis(data.papeis, data.tipo) }
             : null;
-        if (ehAdmin(stub)) {
+        if (ehAdmin(stub) && !(typeof MINERA_SUPERAPP !== 'undefined' && MINERA_SUPERAPP)) {
             const m = garantirModoUiPadrao(stub);
             if (m === 'usuario') return HOME;
             return 'admin.html';
