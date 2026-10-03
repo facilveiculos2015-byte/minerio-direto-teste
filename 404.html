@@ -73,6 +73,7 @@
             if (seg && seg[1]) APP = '/' + seg[1] + '/';
         }
         try { var bs = document.createElement('base'); bs.href = APP; document.head.appendChild(bs); } catch (eb) { /* ignore */ }
+        window.__MINERA_APP_BASE = APP;
         var code = '';
         var m = path.match(/\/c\/([A-Za-z0-9_-]+)\/?$/i);
         if (m) code = String(m[1] || '').toUpperCase();
@@ -102,7 +103,8 @@
 </head>
 <body>
     <div class="box">
-        <img class="logo" src="logo-escavadeira.png" alt="Minera Pará" width="96" height="96">
+        <img class="logo" id="logo404" alt="Minera Pará" width="96" height="96">
+        <script>try { document.getElementById('logo404').src = (window.__MINERA_APP_BASE || '/') + 'logo-escavadeira.png'; } catch (e) {}</script>
         <h1>Minera Pará</h1>
         <p>Abrindo o Minera Pará…</p>
         <noscript>
