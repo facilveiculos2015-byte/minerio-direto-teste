@@ -1,6 +1,6 @@
 -- =====================================================================
 -- SQL 57 — Bônus de indicação (R$ 10 no saldo do Banco por amigo)
--- Idempotente (pode rodar mais de uma vez). Sem barras invertidas.
+-- Idempotente (pode rodar mais de uma vez). Transacional (BEGIN/COMMIT). Sem barras invertidas.
 --
 -- Regras (tudo no servidor, nada credita a partir do cliente):
 --  * Quem compartilha o link ganha R$ 10 de saldo REAL (caixa_saldos) por amigo
@@ -18,6 +18,8 @@
 --    debita o preço e marca o banner como pago (admin libera como de costume).
 -- Depende de: 15 (caixa), 16/51 (indicação), 35 (app_flags), 50 (banners).
 -- =====================================================================
+BEGIN;
+
 
 -- 0) Flags ------------------------------------------------------------
 INSERT INTO public.app_flags (key, value_bool, value_text)
@@ -350,3 +352,5 @@ SELECT
   has_table_privilege('authenticated', 'public.indicacao_bonus', 'INSERT') AS auth_insert_false,
   (SELECT value_bool FROM public.app_flags WHERE key = 'indicacao_bonus_ativo') AS programa_ativo,
   public.caixa_deposito_minimo() AS deposito_minimo;
+
+COMMIT;
