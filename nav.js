@@ -1,10 +1,16 @@
 /** Bottom bar Instagram-style + Mais sheet + chips secundários. */
 
+/* Ícone próprio do Chat em destaque: balão redondo com fone (lembra conversa/ligação, sem usar marca de terceiros). */
+const NAV_CHAT_HERO_ICON = "<svg viewBox='0 0 32 32' width='30' height='30' aria-hidden='true' focusable='false'>" +
+    "<path class='hb-balao' d='M16 4.5C9.6 4.5 4.5 9.4 4.5 15.5c0 2.2.7 4.3 1.9 6L5 27l5.8-1.6c1.6.8 3.3 1.2 5.2 1.2 6.4 0 11.5-4.9 11.5-11S22.4 4.5 16 4.5z'/>" +
+    "<path class='hb-fone' d='M12.3 10.6c.4-.5 1.1-.5 1.4.1l1.1 2c.2.4.1.9-.2 1.2l-.7.6c.6 1.3 1.6 2.3 2.9 2.9l.6-.7c.3-.3.8-.4 1.2-.2l2 1.1c.6.3.6 1 .1 1.4-.9.8-2.2 1.1-3.4.6-2.6-1-4.6-3-5.6-5.6-.5-1.2-.2-2.5.6-3.4z'/>" +
+    "</svg>";
+
 const NAV_PRIMARIOS = [
     { id: 'inicio', label: 'Início', href: 'inicio.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z'/></svg>" },
     { id: 'lotes', label: 'Lotes', href: 'lotes.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><path d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/><path d='M3.3 7L12 12l8.7-5M12 12v9'/></svg>" },
     { id: 'chat', label: 'Chat', hero: true, href: 'chat.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H7l-4 3V11.5A8.5 8.5 0 1 1 21 11.5z'/></svg>" },
-    { id: 'novo', label: 'Novo', href: 'lotes.html?novo=1', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><rect x='3.5' y='3.5' width='17' height='17' rx='5'/><path d='M12 8v8M8 12h8'/></svg>" },
+    { id: 'mapa', label: 'Mapa', href: 'mapa.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><path d='M9 4.5L3.5 6.5v13l5.5-2 6 2 5.5-2v-13l-5.5 2-6-2z'/><path d='M9 4.5v13M15 6.5v13'/></svg>" },
     { id: 'perfil', label: 'Perfil', href: 'perfil.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><circle cx='12' cy='8' r='3.5'/><path d='M5 19.5c1.8-3.2 4-4.5 7-4.5s5.2 1.3 7 4.5'/></svg>", avatar: true }
 ];
 
@@ -703,7 +709,7 @@ function montarNav(paginaAtiva, perfil) {
             if (it.hero) {
                 // Chat em destaque: bolha verde elevada no centro da barra (brilha quando há mensagens novas)
                 return '<a class="bn-item bn-chat bn-chat-hero' + on + '" href="' + APP_ROOT + it.href + '" title="Chat">' +
-                    '<span class="bn-icon bn-chat-orb" aria-hidden="true">' + it.icon + '</span>' +
+                    '<span class="bn-icon bn-chat-orb" aria-hidden="true">' + NAV_CHAT_HERO_ICON + '</span>' +
                     '<span class="bn-label">' + it.label + '</span></a>';
             }
             if (it.avatar) {
@@ -900,21 +906,6 @@ const MineraNotif = (function () {
         renderCombinedBadge();
     }
 
-    /** Card "Negocie pelo chat do app" do Início: "N mensagens novas". */
-    function renderHomeChatBadge(n) {
-        const hb = document.getElementById('home-chat-badge');
-        if (!hb) return;
-        const card = document.getElementById('home-chat-cta');
-        if (n > 0) {
-            hb.textContent = (n > 99 ? '99+' : String(n)) + (n === 1 ? ' mensagem nova' : ' mensagens novas');
-            hb.classList.remove('oculto');
-            if (card) { card.classList.add('tem-novas'); card.setAttribute('aria-label', 'Negocie pelo chat do app, ' + n + (n === 1 ? ' mensagem nova' : ' mensagens novas')); }
-        } else {
-            hb.classList.add('oculto');
-            if (card) { card.classList.remove('tem-novas'); card.setAttribute('aria-label', 'Negocie pelo chat do app'); }
-        }
-    }
-
     /** Badge na aba Chat da barra inferior (mesma contagem de DMs não lidas do sino). */
     function renderChatTabBadge() {
         const tab = document.querySelector('#bottom-nav .bn-item[href$="chat.html"]');
@@ -928,7 +919,6 @@ const MineraNotif = (function () {
             (icon || tab).appendChild(b);
         }
         const n = dmBadgeCount;
-        renderHomeChatBadge(n);
         tab.classList.toggle('tem-novas', n > 0);
         if (n > 0) {
             b.textContent = n > 99 ? '99+' : String(n);
