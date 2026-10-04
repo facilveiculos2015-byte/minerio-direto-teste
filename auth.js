@@ -162,6 +162,7 @@ async function irSeLogado() {
         if (typeof destinoPosLogin === 'function') {
             dest = await destinoPosLogin(session.user);
         }
+        if (typeof voltarPosLogin === 'function') dest = voltarPosLogin() || dest;
         irPara(dest);
     } catch (e) {
         console.error(e);
@@ -317,6 +318,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (typeof destinoPosLogin === 'function') {
                 dest = await destinoPosLogin(data.user);
             }
+            if (typeof voltarPosLogin === 'function') dest = voltarPosLogin() || dest;
             // Entrada no app: card "Pix de apoio" 1x na primeira página (MineraApoio em nav.js)
             try { sessionStorage.setItem('minera_apoio_mostrar', '1'); sessionStorage.setItem('minera_sessao_app', '1'); } catch (e2) { /* ignore */ }
             irPara(dest);

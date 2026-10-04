@@ -6543,7 +6543,7 @@ html[data-theme="light"] .cx-undo { background: #1f2937; }
 /* lista: segurar abre ações, sem menu nativo/seleção */
 #chat-contatos-list .wa-row { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 #chat-row-sheet .chat-msg-sheet-item.oculto { display: none !important; }
-/* 20261003q: toast Desfazer numa linha só; vazio da lista com margem lateral */
+/* 20261003r: toast Desfazer numa linha só; vazio da lista com margem lateral */
 .cx-undo { width: max-content; }
 .cx-undo #cx-undo-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .cx-undo button { flex-shrink: 0; }
@@ -6710,8 +6710,8 @@ html[data-theme="light"] .wa-list-head .wa-list-back { --gk-circ: color-mix(in s
   transition: background .15s ease, border-color .15s ease, transform .1s ease;
 }
 .lote-card .lc-acts .lc-btn:active { transform: scale(0.97); }
-.lote-card .lc-acts .lc-btn-nego { background: #F5A623; color: #0b1220; border: 1px solid #F5A623; }
-.lote-card .lc-acts .lc-btn-nego:hover { background: #e0951a; border-color: #e0951a; }
+.lote-card .lc-acts .lc-btn-nego { background: #16a34a; color: #fff; border: 1px solid #16a34a; font-weight: 800; }
+.lote-card .lc-acts .lc-btn-nego:hover { background: #15803d; border-color: #15803d; }
 .lote-card .lc-acts .lc-btn-ver { background: transparent; color: var(--text-color); border: 1px solid var(--border); }
 .lote-card .lc-acts .lc-btn-ver:hover { border-color: #F5A623; }
 html[data-theme="light"] .lote-card .lc-acts .lc-btn-ver { color: #0f172a; border-color: #cbd5e1; background: #ffffff; }
@@ -6833,3 +6833,14 @@ html[data-theme="light"] #card-seguranca .seg-abrir.seg-perigo { color: #b91c1c;
 #card-seguranca .seg-link { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; }
 .senha-wrap > .senha-olho:hover { background: rgba(148, 163, 184, .14); }
 #card-seguranca .seg-abrir:hover { background: rgba(148, 163, 184, .2); }
+
+/* Anúncio: chamada principal para o Chat do app (no lugar do WhatsApp) */
+.chat-cta { display: flex; flex-direction: column; gap: 8px; margin: 4px 0 8px; }
+.btn-chat-cta { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; min-height: 56px; padding: 14px 18px;
+  border-radius: 16px; background: #16a34a; color: #fff !important; font-size: 1.15rem; font-weight: 800; text-decoration: none;
+  border: 0; box-shadow: 0 6px 18px rgba(22, 163, 74, .35); -webkit-tap-highlight-color: transparent; }
+.btn-chat-cta:hover { background: #15803d; }
+.btn-chat-cta:active { transform: scale(.98); }
+.btn-chat-cta:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
+.chat-cta-vant { margin: 0; font-size: .9rem; line-height: 1.35; color: var(--muted, #64748b); text-align: center; }
+.chat-cta-meu { margin: 4px 0 8px; }
