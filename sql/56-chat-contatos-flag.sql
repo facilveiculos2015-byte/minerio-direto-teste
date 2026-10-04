@@ -11,7 +11,7 @@
 --                                        também barra no banco (quem tentar pela API)
 --
 -- O admin muda no app: Admin → Chat → "Contatos de fora no chat".
--- Teste: aplicado em ldzefbwdghqiudafqjar. Produção: aplicar no SQL Editor quando promover.
+-- Aplicar no SQL Editor de cada projeto (teste ldzefbwdghqiudafqjar: aplicado; produção eelbuaxgfzvxosatwcxk: aplicar).
 -- =====================================================================
 
 -- 1) Flag (padrão do lançamento: LIBERADO)
