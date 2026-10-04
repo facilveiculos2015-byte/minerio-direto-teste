@@ -9,15 +9,9 @@ async function requireSession() {
             return null;
         }
         if (!session) {
-            // Deslogado num anúncio/chat → depois do login volta para a mesma tela
-            try {
-                const pag = location.pathname.split('/').pop() || '';
-                if (/^(lote-detalhe|chat)\.html$/.test(pag)) sessionStorage.setItem('minera_voltar_pos_login', pag + location.search);
-            } catch (e) { /* ignore */ }
             irPara('entrar.html');
             return null;
         }
-        try { window.MINERA_UID = session.user.id; } catch (e) { /* ignore */ }
         return session;
     } catch (e) {
         console.warn('requireSession', e);
@@ -467,16 +461,6 @@ function enforceAdminModoPagina(perfil, paginaAtiva) {
 }
 
 /** Destino pós-login: admin em modo monitoramento → admin.html */
-/** Volta pendente (anúncio/chat aberto deslogado). Só páginas internas seguras; consome uma vez. */
-function voltarPosLogin() {
-    try {
-        const v = sessionStorage.getItem('minera_voltar_pos_login');
-        sessionStorage.removeItem('minera_voltar_pos_login');
-        if (v && /^(lote-detalhe|chat)\.html(\?[A-Za-z0-9_=&%.\-]*)?$/.test(v)) return v;
-    } catch (e) { /* ignore */ }
-    return null;
-}
-
 async function destinoPosLogin(user) {
     if (!user || !user.id) return 'inicio.html';
     try {

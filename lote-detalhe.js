@@ -82,12 +82,9 @@
             '<p class="lote-vendedor" style="margin-bottom:16px">' +
             (data.criado_por_id ? '<span class="mav mav-md" aria-hidden="true" data-av-id="' + esc(data.criado_por_id) + '" data-av-nome="' + esc(data.criado_por || 'Usuário') + '"></span>' : '') +
             '<span>Anunciante: <strong>' + esc(data.criado_por || 'Usuário') + '</strong></span></p>' +
-            (data.criado_por_id && data.criado_por_id === session.user.id
-                ? '<p class="sub chat-cta-meu">Este é o seu anúncio — os interessados falam com você pelo Chat.</p>'
-                : '<div class="chat-cta">' +
-                  '<a class="btn-chat-cta" id="btn-negociar-chat" href="' + nego + '">💬 Negociar no chat</a>' +
-                  '<p class="chat-cta-vant">🔒 Mais seguro: fica tudo registrado no app, com fotos, áudio e aviso na hora.</p>' +
-                  '</div>');
+            '<div style="display:flex;flex-wrap:wrap;gap:10px">' +
+            '<a class="btn-ok" href="' + nego + '">Negociar no chat</a>' +
+            '</div>';
     } catch (e) {
         console.error(e);
         box.innerHTML = '<p class="erro">Falha ao carregar anúncio.</p>';

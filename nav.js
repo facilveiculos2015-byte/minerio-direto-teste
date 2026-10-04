@@ -709,7 +709,7 @@ function montarNav(paginaAtiva, perfil) {
                     '<span class="bn-avatar mav" aria-hidden="true" data-av-id="' + _escNav((perfil && perfil.auth_id) || '') + '" data-av-nome="' + _escNav((perfil && perfil.nome) || '') + '">' + iniciais + '</span>' +
                     '<span class="bn-label">Perfil</span></a>';
             }
-            return '<a class="bn-item' + on + '" href="' + APP_ROOT + it.href + '">' +
+            return '<a class="bn-item' + (it.id === 'chat' ? ' bn-chat' : '') + on + '" href="' + APP_ROOT + it.href + '">' +
                 '<span class="bn-icon" aria-hidden="true">' + it.icon + '</span>' +
                 '<span class="bn-label">' + it.label + '</span></a>';
         }).join('');
@@ -742,7 +742,7 @@ function montarNav(paginaAtiva, perfil) {
 /** Logo escavadeira ao lado do título Minera Pará (toda página autenticada) */
 function garantirBrandLogo() {
     const root = (typeof APP_ROOT === 'string' ? APP_ROOT : '');
-    const src = root + 'logo-escavadeira.png?v=20261003t';
+    const src = root + 'logo-escavadeira.png?v=20261003u';
     document.querySelectorAll('header.header-row h1, header.auth-header h1').forEach(h1 => {
         // Already wrapped in brand-row with logo
         const existingRow = h1.closest('.brand-row');
@@ -898,6 +898,21 @@ const MineraNotif = (function () {
         renderCombinedBadge();
     }
 
+    /** Card "Negocie pelo chat do app" do Início: "N mensagens novas". */
+    function renderHomeChatBadge(n) {
+        const hb = document.getElementById('home-chat-badge');
+        if (!hb) return;
+        const card = document.getElementById('home-chat-cta');
+        if (n > 0) {
+            hb.textContent = (n > 99 ? '99+' : String(n)) + (n === 1 ? ' mensagem nova' : ' mensagens novas');
+            hb.classList.remove('oculto');
+            if (card) { card.classList.add('tem-novas'); card.setAttribute('aria-label', 'Negocie pelo chat do app, ' + n + (n === 1 ? ' mensagem nova' : ' mensagens novas')); }
+        } else {
+            hb.classList.add('oculto');
+            if (card) { card.classList.remove('tem-novas'); card.setAttribute('aria-label', 'Negocie pelo chat do app'); }
+        }
+    }
+
     /** Badge na aba Chat da barra inferior (mesma contagem de DMs não lidas do sino). */
     function renderChatTabBadge() {
         const tab = document.querySelector('#bottom-nav .bn-item[href$="chat.html"]');
@@ -911,6 +926,7 @@ const MineraNotif = (function () {
             (icon || tab).appendChild(b);
         }
         const n = dmBadgeCount;
+        renderHomeChatBadge(n);
         if (n > 0) {
             b.textContent = n > 99 ? '99+' : String(n);
             b.classList.remove('oculto');

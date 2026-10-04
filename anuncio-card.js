@@ -115,10 +115,9 @@
             var nego = root + 'chat.html?' +
                 (l.criado_por_id ? ('com=' + encodeURIComponent(l.criado_por_id) + '&') : '') +
                 'lote=' + encodeURIComponent(codigo);
-            var meuAnuncio = !!(l.criado_por_id && typeof window !== 'undefined' && window.MINERA_UID && l.criado_por_id === window.MINERA_UID);
             actions = '<div class="card-actions lc-acts">' +
                 '<a class="lc-btn lc-btn-ver" href="' + det + '">Ver anúncio</a>' +
-                (meuAnuncio ? '' : '<a class="lc-btn lc-btn-nego" href="' + nego + '" aria-label="Negociar no chat">💬 Negociar</a>') +
+                '<a class="lc-btn lc-btn-nego" href="' + nego + '">Negociar</a>' +
                 '</div>';
         }
         var anunciante = !meus && l.criado_por ? '<p class="lote-meta lote-anunciante">' +
