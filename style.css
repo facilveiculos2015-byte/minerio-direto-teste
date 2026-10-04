@@ -6543,7 +6543,7 @@ html[data-theme="light"] .cx-undo { background: #1f2937; }
 /* lista: segurar abre ações, sem menu nativo/seleção */
 #chat-contatos-list .wa-row { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 #chat-row-sheet .chat-msg-sheet-item.oculto { display: none !important; }
-/* 20261003r: toast Desfazer numa linha só; vazio da lista com margem lateral */
+/* 20261003s: toast Desfazer numa linha só; vazio da lista com margem lateral */
 .cx-undo { width: max-content; }
 .cx-undo #cx-undo-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .cx-undo button { flex-shrink: 0; }
@@ -6844,3 +6844,10 @@ html[data-theme="light"] #card-seguranca .seg-abrir.seg-perigo { color: #b91c1c;
 .btn-chat-cta:focus-visible { outline: 3px solid #86efac; outline-offset: 2px; }
 .chat-cta-vant { margin: 0; font-size: .9rem; line-height: 1.35; color: var(--muted, #64748b); text-align: center; }
 .chat-cta-meu { margin: 4px 0 8px; }
+
+/* Admin: contatos de fora no chat (Liberado / Trancado) */
+.chat-contatos-flag { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
+.flag-contatos-pill { display: inline-flex; align-items: center; min-height: 40px; padding: 6px 14px; border-radius: 999px; font-weight: 800; font-size: 1rem; }
+.flag-contatos-pill.on { background: rgba(22, 163, 74, .15); color: #16a34a; border: 1px solid rgba(22, 163, 74, .5); }
+.flag-contatos-pill.off { background: rgba(220, 38, 38, .12); color: #dc2626; border: 1px solid rgba(220, 38, 38, .5); }
+#btn-flag-contatos { min-height: 48px; padding: 10px 16px; font-weight: 800; }

@@ -254,7 +254,7 @@ function bubbleHtml(m) {
     const txtVisivel = m.texto && String(m.tipo) !== 'documento';
     const body = deleted
         ? '<div class="bubble-text bubble-deleted">🚫 Mensagem apagada</div>'
-        : ((txtVisivel ? '<div class="bubble-text">' + esc(typeof AntiGolpe !== 'undefined' ? AntiGolpe.mascarar(m.texto) : m.texto) + '</div>' : '') + renderMedia(m));
+        : ((txtVisivel ? '<div class="bubble-text">' + esc((typeof AntiGolpe !== 'undefined' && !(AntiGolpe.contatosLiberados && AntiGolpe.contatosLiberados())) ? AntiGolpe.mascarar(m.texto) : m.texto) + '</div>' : '') + renderMedia(m));
     let extra = '';
     if (sched && m.agendado_para) extra += ' · agendada p/ ' + new Date(m.agendado_para).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
     if (m.editado_em && !deleted) extra += ' · editada';
@@ -804,8 +804,12 @@ async function enviarMensagem(opts) {
     if (loteCtx && !texto.includes(loteCtx)) texto = '[Lote ' + loteCtx + '] ' + texto;
     if (typeof exigirDesbloqueado === 'function' && !exigirDesbloqueado(perfilAtual, 'Chat')) { msgErro('Conta bloqueada — pague a comissão no Perfil.'); return false; }
     if (typeof AntiGolpe !== 'undefined') {
-        const chk = AntiGolpe.validarTexto(texto);
-        if (!chk.ok) { msgErro(chk.motivo); toast(chk.motivo); return false; }
+        // Flag do admin: contatos de fora liberados (lançamento) ou trancados
+        if (AntiGolpe.carregarFlagContatos) await AntiGolpe.carregarFlagContatos(false); // cache 20 s (não atrasa o envio)
+        if (!(AntiGolpe.contatosLiberados && AntiGolpe.contatosLiberados())) {
+            const chk = AntiGolpe.validarTexto(texto);
+            if (!chk.ok) { const m = AntiGolpe.MSG_TRANCADO || chk.motivo; msgErro(m); toast(m); return false; }
+        }
     }
     let status = 'enviada', agendado_para = null, tipo = 'text';
     if (agendarAtivo) {
@@ -1064,7 +1068,7 @@ async function startRecording(fromHold) {
     if (bloqueioAtivo()) { toast('Conversa bloqueada.'); return; }
     if (!window.isSecureContext) { toastAudio('Microfone exige HTTPS.'); return; }
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) { toastAudio('Gravação não suportada neste navegador. Use ＋ → Documento.'); return; }
-    // 20261003r: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
+    // 20261003s: uma gravação por vez. Antes, uma 2ª gravação podia começar enquanto a 1ª ainda
     // finalizava (stop() é assíncrono) e as duas escreviam no MESMO array global de pedaços:
     // a 1ª saía curtinha (0:01) e a 2ª sem o cabeçalho WebM (não tocava em lugar nenhum).
     if (gravando || iniciandoGravacao || (mediaRecorder && mediaRecorder.state !== 'inactive')) return;
@@ -2025,7 +2029,8 @@ async function init() {
     ChatStore.setUid(meuAuthId);
     try { localStorage.setItem('minera_chat_last_uid', meuAuthId); } catch (e) { /* ignore */ }
     ligarTempoReal();
-    const [perfil] = await Promise.all([getPerfil(session), atualizarInbox()]);
+    const [perfil] = await Promise.all([getPerfil(session), atualizarInbox(),
+        (typeof AntiGolpe !== 'undefined' && AntiGolpe.carregarFlagContatos) ? AntiGolpe.carregarFlagContatos(true) : null]);
     perfilAtual = perfil;
     aplicarUserLabel(perfilAtual);
     montarNav('chat', perfilAtual);
