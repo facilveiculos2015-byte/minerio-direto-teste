@@ -138,3 +138,7 @@ Rodada de segurança 2026-10-04: caixa_saldos INSERT/UPDATE travados para client
 
 ## 59-chat-midia-privada.sql (SÓ depois do build com seguranca.js no ar)
 Bucket chat-midia vira privado; leitura só dono/participante da conversa/grupo/admin (lotes/ e banners/ para qualquer logado). App usa URLs assinadas (seguranca.js). Rollback: `UPDATE storage.buckets SET public = true WHERE id = 'chat-midia';`
+
+## 57-indicacao-bonus.sql
+Bônus de indicação: R$ 10 de saldo REAL no Banco (caixa_saldos + movimento `bonus_indicacao` "Bônus de indicação") para quem indicou, creditado por gatilho SECURITY DEFINER quando o amigo indicado tem o 1º depósito confirmado (>= R$ 50). Tabela `indicacao_bonus` (1 por conta indicada, status cadastrou/liberado/bloqueado; cliente só lê as próprias), bloqueio de auto-indicação (mesmo auth/e-mail/telefone/CPF; conta > 7 dias; depósito anterior), flag `app_flags.indicacao_bonus_ativo` (pausar no Admin → Caixa/Pix), depósito mínimo `caixa_deposito_minimo` (50) no INSERT, saque de conta com bônus: saldo >= R$ 100 e depois 1º depósito; RPCs `indicacao_bonus_resumo`, `caixa_saque_status`, `admin_indicacao_bonus_lista`, `banner_pagar_com_saldo`. Idempotente. NÃO wipe.
+**Aplicar no SQL Editor depois do 56 e ANTES do 58/59; a SELECT final deve dar triggers_4=4, rls_on=t, auth_insert_false=f, programa_ativo=t, deposito_minimo=50.**
