@@ -190,7 +190,8 @@
     /** Lê a flag (cache 20 s; force = sempre). Erro/sem linha → mantém último valor (padrão liberado). */
     function carregarFlagContatos(force) {
         if (!force && Date.now() - _libTs < 20000) return Promise.resolve(_lib);
-        var sb = global.supabaseClient;
+        // supabaseClient é `const` global (config.js) — não fica em window
+        var sb = (typeof supabaseClient !== 'undefined') ? supabaseClient : global.supabaseClient;
         if (!sb) return Promise.resolve(_lib);
         var q = sb.from('app_flags').select('value_bool').eq('key', FLAG_KEY).maybeSingle()
             .then(function (r) {
