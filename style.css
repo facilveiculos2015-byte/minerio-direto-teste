@@ -6543,7 +6543,7 @@ html[data-theme="light"] .cx-undo { background: #1f2937; }
 /* lista: segurar abre ações, sem menu nativo/seleção */
 #chat-contatos-list .wa-row { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
 #chat-row-sheet .chat-msg-sheet-item.oculto { display: none !important; }
-/* 20261003v: toast Desfazer numa linha só; vazio da lista com margem lateral */
+/* 20261003w: toast Desfazer numa linha só; vazio da lista com margem lateral */
 .cx-undo { width: max-content; }
 .cx-undo #cx-undo-txt { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
 .cx-undo button { flex-shrink: 0; }
@@ -6843,7 +6843,7 @@ html[data-theme="light"] #card-seguranca .seg-abrir.seg-perigo { color: #b91c1c;
 #btn-flag-contatos { min-height: 48px; padding: 10px 16px; font-weight: 800; }
 
 /* Início: destaque do Chat do app */
-.home-chat-cta { display: flex; align-items: center; gap: 10px; margin: 10px 16px 2px; padding: 10px 12px; min-height: 56px;
+.home-chat-cta { display: flex; align-items: center; gap: 10px; margin: 14px 16px 2px; padding: 10px 12px; min-height: 56px;
   border-radius: 18px; background: linear-gradient(135deg, #16a34a, #15803d); color: #fff !important; text-decoration: none;
   box-shadow: 0 6px 18px rgba(22, 163, 74, .30); -webkit-tap-highlight-color: transparent; position: relative; }
 .home-chat-cta:active { transform: scale(.985); }
@@ -6851,9 +6851,9 @@ html[data-theme="light"] #card-seguranca .seg-abrir.seg-perigo { color: #b91c1c;
 .home-chat-cta .hcc-ico { font-size: 24px; line-height: 1; flex: 0 0 auto; }
 .home-chat-cta .hcc-txt { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; gap: 2px; }
 .home-chat-cta .hcc-tit { font-size: 1rem; font-weight: 800; line-height: 1.2; color: #fff; }
-.home-chat-cta .hcc-sub { font-size: .8rem; line-height: 1.3; color: rgba(255, 255, 255, .9); }
-.home-chat-cta .hcc-badge { flex: 0 0 auto; max-width: 92px; padding: 4px 8px; border-radius: 12px; background: #fff; color: #15803d;
-  font-size: .72rem; font-weight: 800; line-height: 1.2; text-align: center; }
+.home-chat-cta .hcc-sub { font-size: .78rem; line-height: 1.3; color: rgba(255, 255, 255, .92); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.home-chat-cta .hcc-badge { position: absolute; top: -9px; right: 14px; padding: 3px 10px; border-radius: 999px; background: #ef4444; color: #fff;
+  font-size: .72rem; font-weight: 800; line-height: 1.3; white-space: nowrap; box-shadow: 0 0 0 2px var(--bg-color, #0b1220), 0 3px 8px rgba(0,0,0,.25); }
 .home-chat-cta .hcc-badge.oculto { display: none; }
 .home-chat-cta .hcc-chev { flex: 0 0 auto; font-size: 26px; line-height: 1; opacity: .85; }
 /* Chat em destaque: bolha verde elevada no centro da barra inferior */
