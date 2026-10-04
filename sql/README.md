@@ -132,3 +132,9 @@ Gestor financeiro (gestor.html) — caderno PESSOAL, não é o Minera Bank: `gf_
 ## 51-seguranca.sql
 Correcoes da auditoria 2026-10-02: trigger `trg_usuarios_guard_privilegios` (nao-admin nao vira admin nem altera pontos/bloqueio/email/auth_id/senha_hash/codigo/indicado_por), `processar_indicacao` 1x e max 100 pts, guards de status em pix_pagamentos/emprestimos/comissoes, chat-midia escrita so em `<uid>/...` (remove qualquer policy antiga de escrita do bucket), logs_sistema SELECT admin ou proprio, admin_* sem anon.
 **Aplicar no SQL Editor por ultimo; a SELECT final deve dar: usuarios_guard_ok=t, status_guards=3, indicacao_limitada=t, chat_midia_policies_pasta=3, demais contagens 0, logs_anon_select=f.**
+
+## 58-seguranca-dados.sql (aplicar depois de 56 e 57-indicacao-bonus)
+Rodada de segurança 2026-10-04: caixa_saldos INSERT/UPDATE travados para cliente (saldo/taxas só via admin/RPC), pedidos de depósito/saque só nascem `pendente`, caixa_movimentos guard, indicacao_pontos/processamento/estoque/expedicao/britagem_config/cotacoes_historico/fretes com escrita restrita, suporte_mensagens sem spoof de remetente, chat midia_url só do próprio bucket/pasta, lotes só https, anon sem grants de tabela (exceto SELECT banners_pagos) e RPCs só para authenticated (allowlist anon: nome_apelido_disponivel, banners_pagos_ativos, banner_preco, caixa_deposito_minimo). Guards SECURITY INVOKER: RPCs definer (bônus, banner_pagar_com_saldo) passam. Idempotente, BEGIN/COMMIT.
+
+## 59-chat-midia-privada.sql (SÓ depois do build com seguranca.js no ar)
+Bucket chat-midia vira privado; leitura só dono/participante da conversa/grupo/admin (lotes/ e banners/ para qualquer logado). App usa URLs assinadas (seguranca.js). Rollback: `UPDATE storage.buckets SET public = true WHERE id = 'chat-midia';`
