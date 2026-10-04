@@ -129,6 +129,16 @@
                 <p class="sub">Verificar saldo · marcar pago/processado debita o Caixa</p>
                 <div id="admin-saques" class="loading">Carregando...</div>
             </section>
+            <section class="card" id="card-indicacao-bonus">
+                <h2>🎁 Bônus de indicação</h2>
+                <p class="sub">R$ 10 no saldo de quem indicou, quando o amigo faz o 1º depósito (mín. R$ 50) e o admin confirma. Crédito automático no servidor (SQL 57).</p>
+                <div class="ib-admin-flag">
+                    <span id="flag-indicacao-estado" class="flag-contatos-pill">…</span>
+                    <button type="button" class="btn-sm" id="btn-flag-indicacao" disabled>…</button>
+                </div>
+                <p id="flag-indicacao-msg" class="msg" role="status" aria-live="polite"></p>
+                <div id="admin-indicacao-bonus" class="loading">Carregando...</div>
+            </section>
             <section class="card">
                 <h2>Pagamentos Pix</h2>
                 <div id="admin-pix-pag" class="loading">Carregando...</div>
