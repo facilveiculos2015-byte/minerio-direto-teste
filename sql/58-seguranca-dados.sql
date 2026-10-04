@@ -81,6 +81,10 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+DROP TRIGGER IF EXISTS trg_caixa_guard_saldo_update ON public.caixa_saldos;
+CREATE TRIGGER trg_caixa_guard_saldo_update
+  BEFORE UPDATE ON public.caixa_saldos
+  FOR EACH ROW EXECUTE FUNCTION public.caixa_guard_saldo_update();
 
 CREATE OR REPLACE FUNCTION public.caixa_guard_movimento_insert()
 RETURNS trigger
@@ -103,6 +107,10 @@ BEGIN
   RETURN NEW;
 END;
 $$;
+DROP TRIGGER IF EXISTS trg_caixa_mov_insert_guard ON public.caixa_movimentos;
+CREATE TRIGGER trg_caixa_mov_insert_guard
+  BEFORE INSERT ON public.caixa_movimentos
+  FOR EACH ROW EXECUTE FUNCTION public.caixa_guard_movimento_insert();
 
 CREATE OR REPLACE FUNCTION public.caixa_guard_pedido_insert()
 RETURNS trigger
