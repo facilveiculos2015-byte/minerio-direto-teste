@@ -3,8 +3,8 @@
 const NAV_PRIMARIOS = [
     { id: 'inicio', label: 'Início', href: 'inicio.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><path d='M3 10.5L12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5z'/></svg>" },
     { id: 'lotes', label: 'Lotes', href: 'lotes.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><path d='M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z'/><path d='M3.3 7L12 12l8.7-5M12 12v9'/></svg>" },
-    { id: 'novo', label: 'Novo', href: 'lotes.html?novo=1', icon: '+', special: true },
-    { id: 'chat', label: 'Chat', href: 'chat.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H7l-4 3V11.5A8.5 8.5 0 1 1 21 11.5z'/></svg>" },
+    { id: 'chat', label: 'Chat', hero: true, href: 'chat.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><path d='M21 11.5a8.5 8.5 0 0 1-8.5 8.5H7l-4 3V11.5A8.5 8.5 0 1 1 21 11.5z'/></svg>" },
+    { id: 'novo', label: 'Novo', href: 'lotes.html?novo=1', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><rect x='3.5' y='3.5' width='17' height='17' rx='5'/><path d='M12 8v8M8 12h8'/></svg>" },
     { id: 'perfil', label: 'Perfil', href: 'perfil.html', icon: "<svg viewBox='0 0 24 24' width='22' height='22' aria-hidden='true' focusable='false'><circle cx='12' cy='8' r='3.5'/><path d='M5 19.5c1.8-3.2 4-4.5 7-4.5s5.2 1.3 7 4.5'/></svg>", avatar: true }
 ];
 
@@ -700,9 +700,11 @@ function montarNav(paginaAtiva, perfil) {
         const iniciais = iniciaisNome(perfil && perfil.nome);
         bar.innerHTML = NAV_PRIMARIOS.map(it => {
             const on = (it.id === paginaAtiva || (it.id === 'lotes' && paginaAtiva === 'novo')) ? ' on' : '';
-            if (it.special) {
-                return '<a class="bn-item bn-novo' + on + '" href="' + APP_ROOT + it.href + '" title="Novo">' +
-                    '<span class="bn-plus">+</span><span class="bn-label">Novo</span></a>';
+            if (it.hero) {
+                // Chat em destaque: bolha verde elevada no centro da barra (brilha quando há mensagens novas)
+                return '<a class="bn-item bn-chat bn-chat-hero' + on + '" href="' + APP_ROOT + it.href + '" title="Chat">' +
+                    '<span class="bn-icon bn-chat-orb" aria-hidden="true">' + it.icon + '</span>' +
+                    '<span class="bn-label">' + it.label + '</span></a>';
             }
             if (it.avatar) {
                 return '<a class="bn-item bn-perfil' + on + '" href="' + APP_ROOT + it.href + '" title="Perfil">' +
@@ -742,7 +744,7 @@ function montarNav(paginaAtiva, perfil) {
 /** Logo escavadeira ao lado do título Minera Pará (toda página autenticada) */
 function garantirBrandLogo() {
     const root = (typeof APP_ROOT === 'string' ? APP_ROOT : '');
-    const src = root + 'logo-escavadeira.png?v=20261003u';
+    const src = root + 'logo-escavadeira.png?v=20261003v';
     document.querySelectorAll('header.header-row h1, header.auth-header h1').forEach(h1 => {
         // Already wrapped in brand-row with logo
         const existingRow = h1.closest('.brand-row');
@@ -927,6 +929,7 @@ const MineraNotif = (function () {
         }
         const n = dmBadgeCount;
         renderHomeChatBadge(n);
+        tab.classList.toggle('tem-novas', n > 0);
         if (n > 0) {
             b.textContent = n > 99 ? '99+' : String(n);
             b.classList.remove('oculto');
