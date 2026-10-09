@@ -8,7 +8,11 @@
       location.hostname === 'localhost' ||
       location.hostname === '127.0.0.1');
 
-  var ASSET_V = '20261004a';
+  var ASSET_V = '20261008i';
+  // Chat Minera (app só-chat instalável em /chat/): service worker e instalação próprios
+  var CHAT_APP = window.MINERA_CHAT_APP === true;
+  // Gestor Minera (app só-gestor instalável em /gestor/): idem, com o service worker do /gestor/
+  var GESTOR_APP = window.MINERA_GESTOR_APP === true;
   var RELOAD_FLAG = 'minera_reloaded_' + ASSET_V;
 
   function forceAssetRefreshOnce() {
@@ -20,6 +24,7 @@
       }
       sessionStorage.setItem(RELOAD_FLAG, '1');
       localStorage.setItem('minera_asset_v', ASSET_V);
+      window.__mineraRecarregando = true; // vai recarregar esta mesma URL (chat/instalar.html no iPhone espera)
       var wipe = Promise.resolve();
       if (typeof caches !== 'undefined' && caches.keys) {
         wipe = caches.keys().then(function (keys) {
@@ -68,6 +73,7 @@
   }
 
   function hardReloadTo(remote) {
+    window.__mineraRecarregando = true;
     var wipe = Promise.resolve();
     if (typeof caches !== 'undefined' && caches.keys) {
       wipe = caches.keys().then(function (keys) {
@@ -172,6 +178,9 @@
 
   if (canRegister) {
     var hadController = !!(navigator.serviceWorker && navigator.serviceWorker.controller);
+    // Chat Minera: a 1ª vez o SW do /chat/ assume a página no lugar do SW do app — isso não é atualização, não recarrega
+    if (CHAT_APP && hadController && !/\/chat\/sw\.js/.test(navigator.serviceWorker.controller.scriptURL || '')) hadController = false;
+    if (GESTOR_APP && hadController && !/\/gestor\/sw\.js/.test(navigator.serviceWorker.controller.scriptURL || '')) hadController = false;
     navigator.serviceWorker.addEventListener('controllerchange', function () {
       // SW novo assumiu: recarrega 1× (não no primeiro install, sem controller antes)
       if (!hadController) { hadController = true; return; }
@@ -184,7 +193,8 @@
     });
     window.addEventListener('load', function () {
       navigator.serviceWorker
-        .register('./sw.js?v=' + ASSET_V, { updateViaCache: 'none' })
+        .register(CHAT_APP ? './chat/sw.js?v=' + ASSET_V : (GESTOR_APP ? './gestor/sw.js?v=' + ASSET_V : './sw.js?v=' + ASSET_V),
+          CHAT_APP ? { scope: './chat/', updateViaCache: 'none' } : (GESTOR_APP ? { scope: './gestor/', updateViaCache: 'none' } : { updateViaCache: 'none' }))
         .then(function (reg) {
           swReg = reg;
           try {
@@ -603,6 +613,7 @@
 
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault();
+    if (CHAT_APP || GESTOR_APP) return; // /chat/ e /gestor/: o instalador de cada um cuida do prompt
     deferredPrompt = e;
     if (!dismissedRecently()) showInstallBar();
     refreshInstallUi();
@@ -685,6 +696,14 @@
   } else {
     setTimeout(bootGrowth, 0);
   }
+
+  // Janela de app instalado: guarda qual app abriu esta janela (1ª página): 'chat' / 'gestor' / 'main'.
+  // app-atalho.js usa para só esconder "Colocar na tela inicial" quando for o PRÓPRIO app aberto pelo ícone.
+  try {
+    if (window.MINERA_INSTALADOR !== true && isStandalone() && !sessionStorage.getItem('minera_janela_app')) {
+      sessionStorage.setItem('minera_janela_app', CHAT_APP ? 'chat' : (GESTOR_APP ? 'gestor' : 'main'));
+    }
+  } catch (e) {}
 
   window.MineraPwa = {
     showInstallBar: showInstallBar,

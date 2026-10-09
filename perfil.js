@@ -763,6 +763,14 @@ document.addEventListener('click', async (e) => {
     // Toggle "Avisos de mensagem" (permissão só no toque)
     if (window.MineraNotifPerm) MineraNotifPerm.montarToggle(document.getElementById('notif-perm-toggle'));
     if (window.MineraSom) MineraSom.montarToggle(document.getElementById('notif-som-toggle'));
+    (async function () {
+        try {
+            if (!window.MineraChatTrava) return;
+            var r = await supabaseClient.auth.getSession();
+            var uid = r && r.data && r.data.session && r.data.session.user && r.data.session.user.id;
+            if (uid) MineraChatTrava.montarToggle(document.getElementById('chat-trava-toggle'), uid);
+        } catch (e) { /* ignore */ }
+    })();
 })();
 
 /* ===== Meus banners (SQL 50) ===== */
@@ -808,7 +816,7 @@ function segSaltHex() { const a = new Uint8Array(16); crypto.getRandomValues(a);
 function segTraduzirErroSenha(e) {
     const t = String((e && (e.code || '')) + ' ' + ((e && e.message) || e || ''));
     if (/same_password|different from the old/i.test(t)) return 'A nova senha precisa ser diferente da atual.';
-    if (/weak_password|at least|should be/i.test(t)) return 'Senha fraca: use pelo menos 6 caracteres (misture letras e números).';
+    if (/weak_password|at least|should be/i.test(t)) return 'Senha fraca: ' + (typeof MINERA_SENHA_MSG === 'string' ? MINERA_SENHA_MSG.charAt(0).toLowerCase() + MINERA_SENHA_MSG.slice(1) : 'use pelo menos 8 caracteres, com letras e números') + '.';
     if (/reauthentication|nonce/i.test(t)) return 'Por segurança, saia e entre de novo no app e tente outra vez.';
     if (/rate|too many|seconds/i.test(t)) return 'Muitas tentativas. Espere um pouco e tente de novo.';
     return 'Não foi possível trocar a senha: ' + ((e && e.message) || t);
@@ -829,7 +837,7 @@ function bindSeguranca(session) {
         const n2 = document.getElementById('seg-senha-nova2').value;
         const sairOutros = document.getElementById('seg-sair-outros').checked;
         if (!atual) { segMsg('seg-senha-msg', 'Digite sua senha atual.', false); return; }
-        if (n1.length < 6) { segMsg('seg-senha-msg', 'A nova senha precisa ter pelo menos 6 caracteres.', false); return; }
+        if (!mineraSenhaOk(n1)) { segMsg('seg-senha-msg', MINERA_SENHA_MSG + '.', false); return; }
         if (n1 !== n2) { segMsg('seg-senha-msg', 'As duas novas senhas não são iguais.', false); return; }
         if (n1 === atual) { segMsg('seg-senha-msg', 'A nova senha precisa ser diferente da atual.', false); return; }
         if (!email) { segMsg('seg-senha-msg', 'Não achei o e-mail da conta. Saia e entre de novo.', false); return; }
@@ -863,10 +871,36 @@ function bindSeguranca(session) {
         const n2 = document.getElementById('seg-banco-nova2').value;
         if (!atual) { segMsg('seg-banco-msg', 'Digite a senha atual do Banco.', false); return; }
         if (n1.length < 6) { segMsg('seg-banco-msg', 'A nova senha do Banco precisa ter pelo menos 6 caracteres.', false); return; }
+        if (n1.length > 64) { segMsg('seg-banco-msg', 'A nova senha do Banco pode ter no máximo 64 caracteres.', false); return; }
         if (n1 !== n2) { segMsg('seg-banco-msg', 'As duas novas senhas não são iguais.', false); return; }
         if (n1 === atual) { segMsg('seg-banco-msg', 'A nova senha precisa ser diferente da atual.', false); return; }
         const btn = document.getElementById('btn-seg-banco-salvar'); btn.disabled = true;
         try {
+            // SQL 60: confere a senha atual e grava no servidor (bcrypt + limite de tentativas)
+            const rp = await supabaseClient.rpc('caixa_pin_definir', { p_novo: n1, p_atual: atual });
+            const semRpc = rp.error && (String(rp.error.code) === 'PGRST202' || String(rp.error.code) === '42883' || /could not find the function/i.test(String(rp.error.message || '')));
+            if (rp.error && !semRpc) throw rp.error;
+            if (!semRpc) {
+                const d = rp.data || {};
+                if (!d.ok) {
+                    let m = 'Senha atual do Banco incorreta (não é a senha de login).';
+                    if (d.motivo === 'bloqueado') {
+                        let h = ''; try { h = new Date(d.bloqueado_ate).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }); } catch (e2) { /* ignore */ }
+                        m = 'Muitas tentativas erradas. A senha do Banco ficou travada até ' + h + '. Use «Esqueci a senha da Caixa» no Banco.';
+                    } else if (d.motivo === 'sem_pin') {
+                        m = 'Você ainda não tem senha do Banco. Ela é criada na primeira vez que você abre o Banco.';
+                    } else if (d.motivo === 'errado' && isFinite(Number(d.restantes))) {
+                        m += Number(d.restantes) === 1 ? ' Resta 1 tentativa.' : ' Restam ' + Number(d.restantes) + ' tentativas.';
+                    }
+                    segMsg('seg-banco-msg', m, false);
+                    return;
+                }
+                segLimpar(fB);
+                segMsg('seg-banco-msg', '✅ Senha do Banco alterada.', true);
+                if (typeof toastMsg === 'function') toastMsg('Senha do Banco alterada');
+                return;
+            }
+            // modo antigo (banco sem o SQL 60)
             const r = await supabaseClient.from('caixa_saldos').select('pin_hash,pin_salt').eq('auth_id', uid).maybeSingle();
             if (r.error) throw r.error;
             if (!r.data || !r.data.pin_hash || !r.data.pin_salt) { segMsg('seg-banco-msg', 'Você ainda não tem senha do Banco. Ela é criada na primeira vez que você abre o Banco.', false); return; }

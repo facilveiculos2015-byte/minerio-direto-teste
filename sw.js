@@ -5,24 +5,20 @@
  *  - JS/CSS/demais: cache 'no-cache' (revalida com ETag → atualiza na hora)
  *  - version.json: nunca cacheado (checagem de build do pwa.js)
  */
-const CACHE_PROD = 'minera-shell-20261004a';
-/* Teste (github.io/netlify) usa outro prefixo: nunca colide com produção nem com outros apps da mesma origem. */
-const IS_PROD_HOST = /^(www\.)?minerapara\.com\.br$/i.test(self.location.hostname);
-const CACHE_PREFIX = IS_PROD_HOST ? 'minera-shell-' : 'minerio-teste-shell-';
-const CACHE = IS_PROD_HOST ? CACHE_PROD : CACHE_PROD.replace(/^minera-shell-/, CACHE_PREFIX);
+const CACHE = 'minera-shell-20261008i';
 const PRECACHE = [
-  './style.css?v=20261004a',
-  './chat-realtime.js?v=20261004a',
-  './avatar.js?v=20261004a',
-  './avatar-editor.js?v=20261004a',
-  './nav.js?v=20261004a',
-  './config.js?v=20261004a',
-  './seguranca.js?v=20261004a',
-  './pwa.js?v=20261004a',
-  './lightbox.js?v=20261004a',
-  './gestor.css?v=20261004a',
-  './gestor-calc.js?v=20261004a',
-  './gestor.js?v=20261004a',
+  './style.css?v=20261008i',
+  './chat-realtime.js?v=20261008i',
+  './avatar.js?v=20261008i',
+  './avatar-editor.js?v=20261008i',
+  './nav.js?v=20261008i',
+  './config.js?v=20261008i',
+  './seguranca.js?v=20261008i',
+  './pwa.js?v=20261008i',
+  './lightbox.js?v=20261008i',
+  './gestor.css?v=20261008i',
+  './gestor-calc.js?v=20261008i',
+  './gestor.js?v=20261008i',
   './logo-escavadeira.png',
   './icon-192.png',
   './icon-512.png',
@@ -75,7 +71,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE && (k.indexOf(CACHE_PREFIX) === 0 || (IS_PROD_HOST && /^minera-/.test(k)))).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
@@ -174,7 +170,8 @@ self.addEventListener('notificationclick', (event) => {
   } catch (e) { /* usa chat.html */ }
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      const same = list.filter((c) => c.url && c.url.indexOf(scope) === 0);
+      // janelas do Chat Minera (/chat/, app instalado à parte) têm o próprio SW: não navega elas para o app completo
+      const same = list.filter((c) => c.url && c.url.indexOf(scope) === 0 && c.url.indexOf(scope + 'chat/') !== 0 && c.url.indexOf(scope + 'gestor/') !== 0);
       const cli = same.find((c) => c.focused) || same[0];
       if (cli) {
         const nav = ('navigate' in cli) ? cli.navigate(target).catch(() => cli) : Promise.resolve(cli);
@@ -188,24 +185,27 @@ self.addEventListener('notificationclick', (event) => {
 /* Web Push (app FECHADO / tela travada): enviado pela Edge Function send-push
  * (gatilho do SQL 54 em chat_mensagens). Payload JSON { title, body, url, tag }.
  * silent:false = som padrão de notificação do aparelho ("pim"). */
+// iPhone/iPad/Safari: TODO push precisa virar notificação (senão o iOS cancela a inscrição depois de 3)
+const PUSH_SEMPRE_MOSTRA = /iPhone|iPad|iPod|Macintosh/.test((self.navigator && self.navigator.userAgent) || '') && !/Chrome|CriOS|Android/.test((self.navigator && self.navigator.userAgent) || '');
 self.addEventListener('push', (event) => {
   let d = {};
   try { d = event.data ? event.data.json() : {}; } catch (e) { d = { body: event.data ? event.data.text() : '' }; }
-  if (!d || (!d.title && !d.body)) return;
+  if (!d || typeof d !== 'object') d = {};
+  const mostrar = () => self.registration.showNotification(d.title || 'Minera Pará', {
+    body: d.body || 'Nova mensagem',
+    icon: './icon-192.png',
+    badge: './icon-192.png',
+    tag: d.tag || 'minera',
+    renotify: true,
+    silent: false,
+    vibrate: [80, 40, 80],
+    data: { url: d.url || './chat.html' }
+  });
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
-      // App aberto e na tela: o próprio app já avisa (toast + "pim") → não duplica
-      if (list.some((c) => c.visibilityState === 'visible' && c.focused !== false)) return;
-      return self.registration.showNotification(d.title || 'Minera Pará', {
-        body: d.body || '',
-        icon: './icon-192.png',
-        badge: './icon-192.png',
-        tag: d.tag || 'minera',
-        renotify: true,
-        silent: false,
-        vibrate: [80, 40, 80],
-        data: { url: d.url || './chat.html' }
-      });
-    })
+      // App aberto e na tela: o próprio app já avisa (toast + "pim") → não duplica (menos no iPhone, que exige a notificação)
+      if (!PUSH_SEMPRE_MOSTRA && list.some((c) => c.visibilityState === 'visible' && c.focused !== false)) return;
+      return mostrar();
+    }).catch(() => mostrar())
   );
 });

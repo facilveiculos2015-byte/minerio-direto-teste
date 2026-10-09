@@ -8,8 +8,8 @@
     <title>Minera Pará</title>
     <meta name="description" content="Te chamaram pra negociar com mais segurança no Minera Pará. Cadastre-se — cada um vê só a própria conta.">
     <meta name="theme-color" content="#F5A623">
-    <link rel="icon" type="image/png" href="icon-192.png">
-    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <link rel="icon" type="image/png" href="/icon-192.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
     <!-- Open Graph / WhatsApp / Facebook -->
     <meta property="og:type" content="website">
@@ -18,14 +18,14 @@
     <meta property="og:title" content="Minera Pará">
     <meta property="og:description" content="Te chamaram pra negociar com mais segurança no Minera Pará. Cadastre-se — cada um vê só a própria conta.">
     <meta property="og:url" content="https://minerapara.com.br/">
-    <meta property="og:image" content="https://minerapara.com.br/og-familia.png?v=20261004a">
-    <meta property="og:image:secure_url" content="https://minerapara.com.br/og-familia.png?v=20261004a">
+    <meta property="og:image" content="https://minerapara.com.br/og-familia.png?v=20261008i">
+    <meta property="og:image:secure_url" content="https://minerapara.com.br/og-familia.png?v=20261008i">
     <meta property="og:image:type" content="image/png">
     <meta property="og:image:width" content="1080">
     <meta property="og:image:height" content="1080">
     <meta property="og:image:alt" content="Minera Pará">
-    <meta property="og:video" content="https://minerapara.com.br/media/convite-familia-minera.mp4?v=20261004a">
-    <meta property="og:video:secure_url" content="https://minerapara.com.br/media/convite-familia-minera.mp4?v=20261004a">
+    <meta property="og:video" content="https://minerapara.com.br/media/convite-familia-minera.mp4?v=20261008i">
+    <meta property="og:video:secure_url" content="https://minerapara.com.br/media/convite-familia-minera.mp4?v=20261008i">
     <meta property="og:video:type" content="video/mp4">
     <meta property="og:video:width" content="464">
     <meta property="og:video:height" content="688">
@@ -34,7 +34,7 @@
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="Minera Pará">
     <meta name="twitter:description" content="Te chamaram pra negociar com mais segurança no Minera Pará. Cadastre-se — cada um vê só a própria conta.">
-    <meta name="twitter:image" content="https://minerapara.com.br/og-familia.png?v=20261004a">
+    <meta name="twitter:image" content="https://minerapara.com.br/og-familia.png?v=20261008i">
 
     <style>
         :root { color-scheme: dark; }
@@ -61,21 +61,15 @@
         var legacy = /^\/minera-app(\/.*)?$/i.exec(path);
         if (legacy && location.hostname !== 'facilveiculos2015-byte.github.io') {
             var rest = legacy[1] || '/';
+            // só caminho do próprio site: '//host' ou '/\host' viraria redirecionamento para outro domínio
+            if (!/^\/(?![\/\\])/.test(rest)) rest = '/';
             if (!/\/c\/[A-Za-z0-9_-]+\/?$/i.test(rest)) {
                 location.replace(rest + location.search + location.hash);
                 return;
             }
             path = rest;
         }
-        // Base do app: em *.github.io (project site) é a 1ª pasta (/minera-app/, /minerio-direto-teste/…);
-        // em domínio próprio / Netlify é a raiz.
-        var APP = '/';
-        if (/\.github\.io$/i.test(location.hostname)) {
-            var seg = /^\/([^\/]+)\//.exec(location.pathname + '/');
-            if (seg && seg[1]) APP = '/' + seg[1] + '/';
-        }
-        try { var bs = document.createElement('base'); bs.href = APP; document.head.appendChild(bs); } catch (eb) { /* ignore */ }
-        window.__MINERA_APP_BASE = APP;
+        var APP = /^\/minera-app(\/|$)/.test(location.pathname) && location.hostname === 'facilveiculos2015-byte.github.io' ? '/minera-app/' : '/';
         var code = '';
         var m = path.match(/\/c\/([A-Za-z0-9_-]+)\/?$/i);
         if (m) code = String(m[1] || '').toUpperCase();
@@ -105,13 +99,12 @@
 </head>
 <body>
     <div class="box">
-        <img class="logo" id="logo404" alt="Minera Pará" width="96" height="96">
-        <script>try { document.getElementById('logo404').src = (window.__MINERA_APP_BASE || '/') + 'logo-escavadeira.png'; } catch (e) {}</script>
+        <img class="logo" src="/logo-escavadeira.png" alt="Minera Pará" width="96" height="96">
         <h1>Minera Pará</h1>
         <p>Abrindo o Minera Pará…</p>
         <noscript>
             <p>JavaScript desativado. Abra o app manualmente:</p>
-            <a href="entrar.html">Entrar no Minera Pará</a>
+            <a href="/entrar.html">Entrar no Minera Pará</a>
         </noscript>
     </div>
 </body>

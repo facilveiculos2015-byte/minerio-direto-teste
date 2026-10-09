@@ -4162,6 +4162,14 @@ body.pagina-inicio .container.wide { max-width: 640px; padding: 0; }
     linear-gradient(160deg, rgba(30,41,59,.5), rgba(15,23,42,.14));
 }
 .olx-qcard.q-maq .qi-wrap { color: #818cf8; background: rgba(99,102,241,.16); border-color: rgba(129,140,248,.4); }
+/* Gestor financeiro — verde / anotação */
+.olx-qcard.q-gestor { color: #a7f3d0; border-color: rgba(16,185,129,.32); }
+.olx-qcard.q-gestor::before {
+  background:
+    radial-gradient(120% 90% at 50% 15%, rgba(16,185,129,.38), transparent 55%),
+    linear-gradient(160deg, rgba(6,78,59,.42), rgba(15,23,42,.14));
+}
+.olx-qcard.q-gestor .qi-wrap { color: #34d399; background: rgba(16,185,129,.16); border-color: rgba(52,211,153,.4); }
 .olx-qcard:active { transform: scale(.97); }
 .olx-banner {
   margin: 0 16px 12px; border-radius: 14px; overflow: hidden;
@@ -5367,6 +5375,7 @@ html[data-theme="light"] .olx-qcard.q-mapa { color: #075985; }
 html[data-theme="light"] .olx-qcard.q-serv { color: #92400e; }
 html[data-theme="light"] .olx-qcard.q-banco { color: #92400e; }
 html[data-theme="light"] .olx-qcard.q-maq { color: #3730a3; }
+html[data-theme="light"] .olx-qcard.q-gestor { color: #065f46; }
 html[data-theme="light"] .lote-midia-thumb { background: #f8fafc; }
 
 
@@ -6906,3 +6915,259 @@ html[data-theme="light"] tr.mov-bonus td { color: #15803d; }
 #btn-flag-indicacao { min-height: 48px; padding: 10px 16px; font-weight: 800; }
 .saque-aviso-acoes .btn-ghost { background: transparent; color: var(--text-color, #f1f5f9); border: 2px solid var(--border); }
 html[data-theme="light"] .saque-aviso-acoes .btn-ghost { background: #fff; color: #0f172a; border-color: #94a3b8; }
+
+/* ===== Chat: Nova conversa em tela cheia (como "Nova conversa" do WhatsApp) ===== */
+.nc-page {
+    position: fixed; inset: 0; z-index: 1000; /* acima da bottom-nav (900): nada fica por baixo/sobreposto */
+    display: flex; flex-direction: column;
+    background: var(--bg-color); color: var(--text-color);
+    padding-top: env(safe-area-inset-top, 0px);
+}
+.nc-page.oculto { display: none !important; }
+body.nc-aberta { overflow: hidden; }
+.nc-head { display: flex; align-items: center; gap: 6px; padding: 8px 12px 6px 6px; min-height: 60px; }
+.nc-back {
+    width: 48px; height: 48px; flex: 0 0 48px; border: 0; border-radius: 50%;
+    background: transparent; color: var(--text-color); display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
+}
+.nc-back:active, .nc-back:focus-visible { background: var(--card-bg); }
+.nc-head-txt { min-width: 0; display: flex; flex-direction: column; }
+.nc-head-txt h2 { margin: 0; font-size: 1.25rem; font-weight: 800; line-height: 1.2; color: var(--text-color); }
+.nc-head-sub { font-size: 0.82rem; color: var(--muted); }
+.nc-head-sub:empty { display: none; }
+.nc-top { padding: 0 14px 6px; }
+.nc-busca {
+    width: 100%; box-sizing: border-box; height: 46px; border-radius: 23px; margin: 0 0 10px;
+    border: 1px solid var(--border); background: var(--input-bg); color: var(--text-color);
+    padding: 0 16px; font-size: 1rem;
+}
+.nc-busca::placeholder { color: var(--muted); }
+.nc-chips { display: flex; gap: 8px; overflow-x: auto; padding: 0 0 6px; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.nc-chips::-webkit-scrollbar { display: none; }
+.nc-chip {
+    flex: 0 0 auto; min-height: 40px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+    border: 1px solid var(--border); background: var(--card-bg); color: var(--text-color);
+    font-weight: 700; font-size: 0.88rem; white-space: nowrap;
+}
+.nc-chip.on { background: var(--accent-color); border-color: var(--accent-color); color: #0b1220; }
+.nc-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px)); }
+.nc-sec { padding: 14px 18px 6px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.03em; text-transform: uppercase; color: var(--muted); }
+.nc-row {
+    display: flex; align-items: center; gap: 14px; width: 100%; min-height: 68px; box-sizing: border-box;
+    padding: 8px 18px; border: 0; background: transparent; color: var(--text-color); text-align: left; cursor: pointer; font: inherit;
+}
+.nc-row:active, .nc-row:focus-visible { background: var(--card-bg); }
+.nc-av-wrap { position: relative; flex: 0 0 auto; }
+.nc-av, .nc-page .wa-av.nc-av { width: 50px; height: 50px; flex: 0 0 50px; font-size: 1.05rem; }
+.nc-av-acao { display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--accent-color); color: #0b1220; }
+.nc-txt { min-width: 0; flex: 1 1 auto; display: flex; flex-direction: column; gap: 2px; }
+.nc-txt strong { font-size: 1rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nc-sub2, .nc-papel { font-size: 0.85rem; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nc-papel { color: var(--label); }
+.nc-tag { flex: 0 0 auto; font-size: 0.72rem; font-weight: 700; color: var(--muted); border: 1px solid var(--border); border-radius: 999px; padding: 2px 8px; }
+.nc-check {
+    position: absolute; right: -2px; bottom: -2px; width: 22px; height: 22px; border-radius: 50%;
+    display: none; align-items: center; justify-content: center; font-size: 0.8rem; font-weight: 900;
+    background: var(--accent-color); color: #0b1220; border: 2px solid var(--bg-color);
+}
+.nc-row.sel .nc-check { display: inline-flex; }
+.nc-row.sel { background: var(--copper-soft); }
+.nc-vazio, .nc-hint { padding: 16px 18px; color: var(--muted); font-size: 0.9rem; margin: 0; }
+.nc-hint { font-size: 0.78rem; }
+.nc-msg { margin: 0 14px; }
+.nc-msg:empty { display: none; }
+.nc-foot { padding: 10px 14px calc(10px + env(safe-area-inset-bottom, 0px)); border-top: 1px solid var(--border); background: var(--bg-color); }
+.nc-foot.oculto { display: none !important; }
+.nc-criar { width: 100%; min-height: 50px; border: 0; border-radius: 25px; background: var(--accent-color); color: #0b1220; font-weight: 800; font-size: 1rem; cursor: pointer; }
+.nc-criar:disabled { opacity: 0.45; cursor: default; }
+@media (min-width: 801px) {
+    .nc-page { left: 50%; right: auto; width: min(560px, 100vw); transform: translateX(-50%); border-left: 1px solid var(--border); border-right: 1px solid var(--border); box-shadow: var(--shadow-elev); }
+}
+
+/* ===== Chat mic: trava estilo WhatsApp (seta ↑ + cadeado acima do 🎤) ===== */
+.cx-rec-lock-wrap {
+  position: absolute; right: 6px; bottom: calc(100% + 6px); width: 48px; height: 92px;
+  display: none; align-items: flex-end; justify-content: center; pointer-events: none; z-index: 40;
+}
+.cx-rec-lock-wrap.on { display: flex; }
+.wa-comp-pill, .gk-comp-pill { position: relative; }
+.cx-rec-lock {
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 2px;
+  width: 44px; height: 88px; border-radius: 22px;
+  background: color-mix(in srgb, var(--card-bg) 92%, #ef4444 8%);
+  border: 1px solid var(--border); box-shadow: var(--shadow-elev);
+  padding: 8px 0 6px; box-sizing: border-box;
+}
+.cx-rec-lock-pad {
+  width: 36px; height: 36px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+  background: var(--input-bg); color: var(--muted); transition: transform .05s linear, background .12s ease, color .12s ease;
+}
+.cx-rec-lock-wrap.on[style*="--lock-p: 1"], .cx-rec-lock-wrap.lock-ready .cx-rec-lock-pad {
+  background: #F5A623; color: #0b1220;
+}
+.cx-rec-lock-arrow {
+  font-size: 14px; line-height: 1; color: var(--muted); font-weight: 900;
+  animation: cx-rec-lock-bounce 1s ease-in-out infinite;
+}
+@keyframes cx-rec-lock-bounce {
+  0%, 100% { transform: translateY(0); opacity: .7; }
+  50% { transform: translateY(-4px); opacity: 1; }
+}
+/* progresso do deslize ↑: preenche o cadeado */
+.cx-rec-lock-wrap.on .cx-rec-lock-pad {
+  background: color-mix(in srgb, var(--input-bg) calc((1 - var(--lock-p, 0)) * 100%), #F5A623 calc(var(--lock-p, 0) * 100%));
+  color: color-mix(in srgb, var(--muted) calc((1 - var(--lock-p, 0)) * 100%), #0b1220 calc(var(--lock-p, 0) * 100%));
+}
+body.chat-gravando #btn-audio.recording {
+  transform: scale(1.08);
+}
+#btn-audio {
+  touch-action: none;
+  -webkit-user-select: none; user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Início: botão flutuante "Chat na tela inicial" (no lugar do ＋ Anunciar) → instalador do Chat Minera (/chat/instalar.html) */
+.olx-fab.chat-ext-fab {
+  width: auto; height: 52px; padding: 0 16px 0 7px; gap: 9px; border-radius: 26px;
+  background: #0b1220; color: #fcd34d; border: 2px solid #F5A623;
+  font-size: .8rem; font-weight: 800; line-height: 1.12; text-align: left; letter-spacing: .01em;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .45), 0 0 0 3px rgba(245, 166, 35, .18);
+}
+.chat-ext-fab .cef-ico { width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0; display: block; }
+.chat-ext-fab .cef-txt { white-space: nowrap; }
+.chat-ext-fab:active { transform: scale(.97); }
+@media (max-width: 420px) { .olx-fab.chat-ext-fab { width: auto; height: 50px; font-size: .78rem; } }
+
+/* Chat Minera (app só-chat em /chat/): sem barra de baixo, sem Voltar da lista, sem "Baixar app" do app completo */
+body.chat-app #bottom-nav,
+body.chat-app #btn-baixar-app-login { display: none !important; }
+body.chat-app #btn-chat-list-back { visibility: hidden; pointer-events: none; }
+body.chat-app.pagina-chat { padding-bottom: 0; }
+.chat-app-full {
+  display: inline-block; margin: -2px 16px 8px; font-size: .78rem; font-weight: 600;
+  color: var(--muted); text-decoration: underline; text-underline-offset: 2px; opacity: .85;
+}
+body.chat-app.chat-thread-open .chat-app-full { display: none; }
+
+/* Chat do app: card "Novidade: Chat Minera na tela inicial" (chat-novidade.js) */
+.cn-modal { position: fixed; inset: 0; z-index: 10060; display: flex; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; }
+.cn-backdrop { position: absolute; inset: 0; background: rgba(2, 6, 23, .78); }
+.cn-card {
+  position: relative; width: 100%; max-width: 420px; max-height: calc(100dvh - 24px); overflow-y: auto; box-sizing: border-box;
+  padding: 16px 16px 10px; border-radius: 22px; text-align: left; color: #e2e8f0; font-size: .97rem; line-height: 1.42;
+  background: linear-gradient(160deg, #1e293b 0%, #0b1220 100%); border: 2px solid #F5A623;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55), 0 0 0 4px rgba(245, 166, 35, .15);
+}
+.cn-x { position: absolute; top: 10px; right: 10px; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #334155; background: #0b1220; color: #cbd5e1; font-size: 1.05rem; cursor: pointer; }
+.cn-ico { float: left; width: 52px; height: 52px; border-radius: 14px; margin: 0 12px 6px 0; box-shadow: 0 8px 22px rgba(245, 166, 35, .35); }
+.cn-tit { margin: 2px 40px 10px 0; min-height: 52px; font-size: 1.22rem; line-height: 1.25; font-weight: 800; color: #fcd34d; }
+.cn-card p { clear: both; margin: 0 0 8px; }
+.cn-card .cn-como { margin: 4px 0 6px; font-weight: 800; color: #F5A623; }
+.cn-lista { margin: 0 0 12px; padding: 0 0 0 1.15rem; list-style: disc; }
+.cn-lista li { margin: 0 0 6px; padding: 0; border: 0; background: none; }
+.cn-lista strong { color: #f8fafc; }
+.cn-go, .cn-depois { display: flex; align-items: center; justify-content: center; width: 100%; min-height: 52px; border-radius: 14px; font-weight: 800; font-size: 1.08rem; text-decoration: none; cursor: pointer; box-sizing: border-box; }
+.cn-go { background: linear-gradient(145deg, #fcd34d 0%, #F5A623 45%, #d97706 100%); color: #0b1220; border: 0; box-shadow: 0 8px 22px rgba(245, 166, 35, .35); }
+.cn-depois { margin-top: 8px; background: transparent; color: #e2e8f0; border: 2px solid #475569; }
+.cn-nunca-lbl { display: flex; align-items: center; gap: 10px; margin: 8px 2px 0; min-height: 44px; font-size: .95rem; color: #cbd5e1; cursor: pointer; }
+.cn-nunca-lbl input { width: 22px; height: 22px; accent-color: #F5A623; flex-shrink: 0; }
+
+/* Chat Minera: "Pedir senha ao abrir" (chat-trava.js) e ⚙️ Configurações do ⋮ */
+html.ct-cedo body > *, body.ct-bloqueado > *:not(#chat-trava) { visibility: hidden !important; }
+.ct-modal { position: fixed; inset: 0; z-index: 10080; display: flex; align-items: center; justify-content: center; padding: 16px; box-sizing: border-box; background: #0b1220; visibility: visible !important; }
+.ct-card { width: 100%; max-width: 380px; text-align: center; color: #e2e8f0; }
+.ct-ico { width: 56px; height: 56px; border-radius: 15px; margin: 0 auto 12px; display: block; }
+.ct-tit { margin: 0 0 6px; font-size: 1.3rem; color: #fcd34d; font-weight: 800; }
+.ct-sub { margin: 0 0 16px; font-size: .95rem; color: #cbd5e1; overflow-wrap: anywhere; }
+.ct-lbl { display: block; text-align: left; font-weight: 700; margin: 0 0 6px; }
+.ct-senha { width: 100%; box-sizing: border-box; min-height: 50px; font-size: 1.05rem; padding: 10px 14px; border-radius: 12px; border: 1px solid #475569; background: #111a2b; color: #f8fafc; }
+.ct-err { margin: 8px 0 0; color: #fca5a5; font-weight: 700; text-align: left; }
+.ct-ok, .ct-sair { display: block; width: 100%; min-height: 52px; margin: 14px 0 0; border-radius: 14px; font-weight: 800; font-size: 1.05rem; cursor: pointer; }
+.ct-ok { background: linear-gradient(145deg, #fcd34d 0%, #F5A623 45%, #d97706 100%); color: #0b1220; border: 0; }
+.ct-ok:disabled { opacity: .7; }
+.ct-sair { background: transparent; color: #cbd5e1; border: 1px solid #475569; min-height: 46px; font-size: .95rem; font-weight: 700; }
+.cc-modal { position: fixed; inset: 0; z-index: 10050; display: flex; align-items: flex-end; justify-content: center; }
+.cc-backdrop { position: absolute; inset: 0; background: rgba(2, 6, 23, .7); }
+.cc-card { position: relative; width: 100%; max-width: 520px; max-height: 90dvh; overflow-y: auto; box-sizing: border-box; padding: 14px 14px calc(16px + env(safe-area-inset-bottom, 0px)); border-radius: 20px 20px 0 0; background: #0f172a; color: #e2e8f0; border-top: 2px solid #F5A623; }
+html[data-theme="light"] .cc-card { background: #ffffff; color: #0f172a; }
+.cc-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.cc-head h2 { margin: 0; font-size: 1.15rem; }
+.cc-x { width: 40px; height: 40px; border-radius: 50%; border: 1px solid #475569; background: transparent; color: inherit; cursor: pointer; }
+.cc-push-dica { margin: -4px 0 8px; font-size: .85rem; }
+.cc-link { display: block; margin: 10px 0 0; text-align: center; font-weight: 700; color: #F5A623; }
+.chat-login-dica { margin: 6px 0 0; font-size: .82rem; opacity: .75; }
+
+/* 20261008i: botão "Cancelar" sempre visível enquanto grava (segurando ou travado) */
+.cx-rec .cx-rec-lixo { display: inline-flex; width: auto; min-width: 44px; height: 40px; gap: 5px; padding: 0 12px 0 9px; border-radius: 999px;
+  border: 1.5px solid rgba(239, 68, 68, .75); background: rgba(239, 68, 68, .08); font-weight: 700; font-size: 14px; line-height: 1; flex: 0 0 auto; }
+.cx-rec .cx-rec-lixo svg { width: 18px; height: 18px; flex: 0 0 18px; }
+.cx-rec .cx-rec-lixo:active { background: rgba(239, 68, 68, .2); }
+.cx-rec:not(.travado) .cx-rec-canvas { min-width: 24px; }
+@media (max-width: 430px) { .cx-rec:not(.travado) .cx-rec-slide-x { display: none; } body.pagina-chat .chat-thread-active .chat-rec-bar.cx-rec:not(.travado) { gap: 8px; } }
+
+/* ===== 20261008i — botão ↻ Atualizar no topo da conversa (ao lado da pílula do nome) ===== */
+.chat-thread-active .gk-head .gk-pill { margin: 0 0 0 auto; max-width: calc(100% - 170px); }
+.gk-circ.gk-refresh { width: 38px; height: 38px; min-width: 38px; margin: 0 auto 0 -4px; overflow: visible; }
+.gk-refresh svg { transition: transform .2s ease; }
+.gk-refresh.girando svg { animation: gk-refresh-giro .8s linear infinite; }
+.gk-refresh.girando { pointer-events: none; opacity: .85; }
+@keyframes gk-refresh-giro { to { transform: rotate(360deg); } }
+.gk-refresh .gk-refresh-ok {
+  position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); white-space: nowrap;
+  font-size: 0.7rem; font-weight: 700; padding: 3px 8px; border-radius: 10px; pointer-events: none;
+  background: #22c55e; color: #fff; opacity: 0; transition: opacity .2s ease;
+}
+.gk-refresh.ok .gk-refresh-ok { opacity: 1; }
+.gk-refresh.erro .gk-refresh-ok { opacity: 1; background: #ef4444; }
+@media (prefers-reduced-motion: reduce) { .gk-refresh.girando svg { animation-duration: 2s; } }
+.gk-circ.gk-refresh:hover { background: var(--gk-circ); color: var(--gk-ico); }
+
+/* Início: 5 atalhos (Favoritos, Serviços, Maquinário, Banco, Gestor) cabendo em 320–390 px */
+.olx-quick.olx-quick-5 { gap: 6px; padding: 8px 10px 12px; }
+.olx-quick.olx-quick-5 .olx-qcard { font-size: .72rem; gap: 7px; padding: 8px 1px 10px; letter-spacing: -.01em; white-space: nowrap; }
+@media (max-width: 380px) {
+  .olx-quick.olx-quick-5 { gap: 5px; padding: 8px 8px 12px; }
+  .olx-quick.olx-quick-5 .olx-qcard { font-size: .68rem; letter-spacing: -.02em; }
+  .olx-quick.olx-quick-5 .olx-qcard .qi-wrap { width: 42px; height: 42px; border-radius: 14px; }
+  .olx-quick.olx-quick-5 .olx-qcard .qi-svg { width: 22px; height: 22px; }
+}
+.olx-quick.olx-quick-5 .olx-qcard .qi-wrap { width: 46px; height: 46px; border-radius: 15px; }
+.olx-quick.olx-quick-5 .olx-qcard .qi-svg { width: 23px; height: 23px; }
+@media (max-width: 345px) {
+  .olx-quick.olx-quick-5 { gap: 4px; padding: 8px 6px 12px; }
+  .olx-quick.olx-quick-5 .olx-qcard { font-size: .62rem; }
+  .olx-quick.olx-quick-5 .olx-qcard .qi-wrap { width: 40px; height: 40px; border-radius: 13px; }
+  .olx-quick.olx-quick-5 .olx-qcard .qi-svg { width: 21px; height: 21px; }
+}
+@media (min-width: 600px) { .olx-quick.olx-quick-5 { gap: 12px; padding: 8px 16px 12px; } .olx-quick.olx-quick-5 .olx-qcard { font-size: .78rem; } }
+
+/* Botãozinho "Colocar na tela inicial" (app-atalho.js): Chat Minera e Gestor Minera. Some quando já instalado. */
+.app-atalho-btn {
+  display: inline-flex; align-self: flex-start; width: fit-content; max-width: calc(100% - 32px); align-items: center; gap: 6px; margin: 0 16px 10px; padding: 7px 13px; min-height: 36px; box-sizing: border-box;
+  border-radius: 999px; font-size: .84rem; font-weight: 700; text-decoration: none; line-height: 1.2;
+  color: var(--text-color); background: rgba(245,166,35,.14); border: 1px solid rgba(245,166,35,.45);
+}
+.app-atalho-btn:active { transform: scale(.97); }
+.app-atalho-btn[hidden] { display: none !important; }
+/* Chat: mesmo visual do antigo botão "Chat na tela inicial" do Início (escuro, borda dourada, ícone do Chat Minera), agora no topo do chat */
+.app-atalho-btn.chat-ext-top {
+  min-height: 46px; padding: 0 16px 0 6px; gap: 9px; border-radius: 24px;
+  background: #0b1220; color: #fcd34d; border: 2px solid #F5A623;
+  font-size: .82rem; font-weight: 800; letter-spacing: .01em;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, .35), 0 0 0 3px rgba(245, 166, 35, .18);
+}
+.chat-ext-top .cef-ico { width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0; display: block; }
+.chat-ext-top .cef-txt { white-space: nowrap; }
+.app-atalho-btn.gf-atalho { margin: 0 0 12px; background: rgba(16,185,129,.14); border-color: rgba(16,185,129,.5); }
+@media (max-width: 899px) { body.chat-thread-open .app-atalho-btn { display: none !important; } }
+
+/* Gestor Minera (app só-gestor em /gestor/): sem barra de baixo, sem "← Perfil", link discreto para o app completo */
+body.gestor-app #bottom-nav,
+body.gestor-app #btn-baixar-app-login { display: none !important; }
+body.gestor-app.pagina-gestor { padding-bottom: 0; }
+.gestor-app-full {
+  display: inline-block; margin: 0 0 10px; font-size: .78rem; font-weight: 600;
+  color: var(--muted); text-decoration: underline; text-underline-offset: 2px; opacity: .85;
+}

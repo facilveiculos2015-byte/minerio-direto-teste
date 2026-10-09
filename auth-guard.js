@@ -33,6 +33,18 @@ async function limparSessaoERedirecionar() {
     irPara('entrar.html');
 }
 
+/** Regra da senha da conta (cadastro, trocar senha, nova senha). Login NÃO valida (senhas antigas continuam entrando).
+ *  Igual ao Supabase Auth: mínimo 8 + "Letters and digits". */
+var MINERA_SENHA_MSG = 'A senha precisa ter pelo menos 8 caracteres, com letras e números';
+function mineraSenhaOk(s) { s = String(s == null ? '' : s); return s.length >= 8 && /[A-Za-z]/.test(s) && /[0-9]/.test(s); }
+function mineraSenhaRegra(input) {
+    if (!input || input._mineraSenha) return;
+    input._mineraSenha = true;
+    var f = function () { input.setCustomValidity(input.value && !mineraSenhaOk(input.value) ? MINERA_SENHA_MSG : ''); };
+    input.addEventListener('input', f); input.addEventListener('invalid', f); f();
+}
+window.MINERA_SENHA_MSG = MINERA_SENHA_MSG; window.mineraSenhaOk = mineraSenhaOk; window.mineraSenhaRegra = mineraSenhaRegra;
+
 /** Escape HTML obrigatório para caminhos innerHTML (CSP-friendly). */
 function escapeHtml(s) {
     return String(s == null ? '' : s)
@@ -487,12 +499,15 @@ async function destinoPosLogin(user) {
 async function desligarPushDoAparelho() {
     try {
         if (!('serviceWorker' in navigator)) return;
-        const reg = await Promise.race([navigator.serviceWorker.getRegistration(), new Promise((r) => setTimeout(r, 2500))]);
-        const sub = reg && reg.pushManager ? await reg.pushManager.getSubscription() : null;
-        if (!sub) return;
-        try { await Promise.race([supabaseClient.from('push_subscriptions').delete().eq('endpoint', sub.endpoint), new Promise((r) => setTimeout(r, 2500))]); } catch (e) { /* ignore */ }
-        try { await sub.unsubscribe(); } catch (e) { /* ignore */ }
-        try { Object.keys(localStorage).forEach((k) => { if (/^minera_push_reg_/.test(k)) localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
+        // App completo E Chat Minera (/chat/, outro service worker): a sessão é a mesma, então os dois param de avisar
+        const regs = await Promise.race([navigator.serviceWorker.getRegistrations(), new Promise((r) => setTimeout(() => r([]), 2500))]);
+        for (const reg of (regs || [])) {
+            const sub = reg && reg.pushManager ? await reg.pushManager.getSubscription().catch(() => null) : null;
+            if (!sub) continue;
+            try { await Promise.race([supabaseClient.from('push_subscriptions').delete().eq('endpoint', sub.endpoint), new Promise((r) => setTimeout(r, 2500))]); } catch (e) { /* ignore */ }
+            try { await sub.unsubscribe(); } catch (e) { /* ignore */ }
+        }
+        try { Object.keys(localStorage).forEach((k) => { if (/^minera_push_(reg|chat)_/.test(k)) localStorage.removeItem(k); }); } catch (e) { /* ignore */ }
     } catch (e) { /* ignore */ }
 }
 

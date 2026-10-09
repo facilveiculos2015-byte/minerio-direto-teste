@@ -694,13 +694,13 @@ async function creditarCaixaEmprestimo(emp) {
     if (!uid || !(valor > 0)) return;
     let { data: row } = await supabaseClient
         .from('caixa_saldos')
-        .select('*')
+        .select('auth_id,saldo')
         .eq('auth_id', uid)
         .maybeSingle();
     if (!row) {
         const ins = await supabaseClient.from('caixa_saldos')
             .insert([{ auth_id: uid, saldo: 0, taxa_mensal: 5, taxa_yield_max: 5 }])
-            .select('*').maybeSingle();
+            .select('auth_id,saldo').maybeSingle();
         if (ins.error) throw ins.error;
         row = ins.data;
     }
@@ -725,11 +725,11 @@ async function creditarCaixaEmprestimo(emp) {
 async function creditarCaixaValor(uid, valor, tipo, obs) {
     if (!uid || !(Number(valor) > 0)) return;
     let { data: row } = await supabaseClient
-        .from('caixa_saldos').select('*').eq('auth_id', uid).maybeSingle();
+        .from('caixa_saldos').select('auth_id,saldo').eq('auth_id', uid).maybeSingle();
     if (!row) {
         const ins = await supabaseClient.from('caixa_saldos')
             .insert([{ auth_id: uid, saldo: 0, taxa_mensal: 5, taxa_yield_max: 5 }])
-            .select('*').maybeSingle();
+            .select('auth_id,saldo').maybeSingle();
         if (ins.error) throw ins.error;
         row = ins.data;
     }
@@ -749,7 +749,7 @@ async function creditarCaixaValor(uid, valor, tipo, obs) {
 async function debitarCaixaValor(uid, valor, obs) {
     if (!uid || !(Number(valor) > 0)) throw new Error('Valor inválido');
     let { data: row } = await supabaseClient
-        .from('caixa_saldos').select('*').eq('auth_id', uid).maybeSingle();
+        .from('caixa_saldos').select('auth_id,saldo').eq('auth_id', uid).maybeSingle();
     if (!row) throw new Error('Usuário sem saldo no Caixa');
     const saldo = row.saldo != null ? Number(row.saldo) : 0;
     if (Number(valor) > saldo + 1e-9) throw new Error('Saldo insuficiente (' + saldo + ')');
@@ -2011,7 +2011,10 @@ async function carregarIndicacaoBonusAdmin() {
                 '<td>' + esc(r.status === 'liberado' ? brl(r.valor) : '—') + '</td></tr>').join('') +
             '</tbody></table></div>' : '<p class="sub">Nenhuma indicação ainda.</p>');
     } catch (e) {
-        box.innerHTML = '<p class="erro">' + esc(e.message || String(e)) + ' (SQL 57)</p>';
+        const semSql = /PGRST202|admin_indicacao_bonus_lista|does not exist|not find/i.test(String((e && (e.code || '') + ' ' + (e.message || '')) || e));
+        box.innerHTML = semSql
+            ? '<p class="sub">Bônus de indicação: disponível depois de aplicar o SQL 57 no Supabase.</p>'
+            : '<p class="erro">' + esc(e.message || String(e)) + '</p>';
     }
 }
 function bindFlagIndicacaoAdmin() {

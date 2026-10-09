@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<!-- GERADO por scripts/chat-app-sync.mjs a partir de chat.html (Chat Minera, modo só-chat). Não editar à mão. -->
+<html lang="pt-BR" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.bigdatacloud.net https://nominatim.openstreetmap.org https://api.allorigins.win https://servicodados.ibge.gov.br https://economia.awesomeapi.com.br https://api.gold-api.com https://query1.finance.yahoo.com https://api.coinbase.com https://metalmetric.com https://mintedmetal.com; worker-src 'self' blob:; frame-src 'self' https://www.google.com https://maps.google.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <base href="../">
+    <script>window.MINERA_CHAT_APP = true;</script>
+    <script>(function(){try{var mm=window.matchMedia;if(!((mm&&(mm('(display-mode: standalone)').matches||mm('(display-mode: fullscreen)').matches))||navigator.standalone===true))return;var u=localStorage.getItem('minera_chat_last_uid');if(u&&localStorage.getItem('minera_chat_trava_'+u)==='1'&&sessionStorage.getItem('minera_chat_unlock_sess_'+u)!=='1'){document.documentElement.classList.add('ct-cedo');setTimeout(function(){document.documentElement.classList.remove('ct-cedo');},10000);}}catch(e){}})();</script>
+    <title>Chat Minera</title>
+    <link rel="icon" type="image/png" href="chat/icon-192.png?v=20261008i">
+    <link rel="apple-touch-icon" href="chat/apple-touch-icon.png?v=20261008i">
+    <link rel="manifest" href="chat/manifest.webmanifest">
+    <meta name="theme-color" content="#F5A623">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Chat Minera">
+    <link rel="stylesheet" href="style.css?v=20261008i">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.2/dist/umd/supabase.js"></script>
+    <script>(function(){try{var t=localStorage.getItem('minera_tema');if(t==='light'||t==='dark')document.documentElement.setAttribute('data-theme',t);}catch(e){}})();</script>
+</head>
+<body class="pagina-chat chat-app">
+    <div class="container wide">
+        <p id="user-label" class="oculto"></p>
+        <nav id="app-nav" class="nav-chips oculto"></nav>
+
+        <section class="card chat-wa-layout" id="chat-wa" style="border:0;background:transparent;box-shadow:none;padding:0;margin:0">
+            <aside class="chat-contacts-pane" id="chat-contacts-pane">
+                <div class="wa-list-head">
+                    <button type="button" class="gk-circ gk-back wa-list-back" id="btn-chat-list-back" aria-label="Voltar à tela anterior"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    <div class="wa-head-right">
+                        <button type="button" class="wa-circ-btn" id="btn-chat-menu-list" aria-label="Menu">⋮</button>
+                        <button type="button" class="wa-circ-btn" id="btn-chat-cam" aria-label="Câmera">📷</button>
+                        <button type="button" class="wa-circ-btn accent" id="btn-add-contato" aria-label="Nova conversa">＋</button>
+                    </div>
+                </div>
+                <h1 class="wa-title">Conversas</h1>
+                <a class="chat-app-full" href="inicio.html" target="_blank" rel="noopener">Abrir Minera Pará completo ↗</a>
+                <a class="app-atalho-btn chat-ext-top" data-app-atalho="chat" href="chat/instalar.html" hidden aria-label="Chat na tela inicial: colocar o Chat Minera na tela inicial do celular"><img class="cef-ico" src="chat/icon-192.png?v=20261008i" alt="" width="32" height="32" aria-hidden="true"><span class="cef-txt">Chat na tela inicial</span></a>
+                <input type="search" id="chat-busca-contatos" class="wa-search" placeholder="Buscar ou pesquisar…" autocomplete="off">
+                <div class="wa-chips" id="wa-filter-chips" role="group" aria-label="Filtros">
+                    <button type="button" class="wa-chip on" data-wa="todas">Todas</button>
+                    <button type="button" class="wa-chip" data-wa="nao_lidas">Não lidas</button>
+                </div>
+                <div id="chat-contatos-list" class="chat-contatos-list"></div>
+            </aside>
+
+            <div class="chat-thread-pane" id="chat-thread-pane">
+                <div id="chat-thread-empty" class="chat-thread-empty">
+                    <img class="brand-logo-lg chat-empty-logo" src="logo-escavadeira.png?v=20261008i" alt="" width="96" height="96" decoding="async">
+                    <p class="chat-empty-title">Minera Chat</p>
+                    <p>Selecione uma conversa.</p>
+                </div>
+                <div id="chat-thread-active" class="chat-thread-active oculto" data-build="20261008i">
+                    <div class="wa-thread-head chat-thread-head gk-head" data-build="20261008i">
+                        <button type="button" class="gk-circ gk-back chat-back" id="btn-chat-back" aria-label="Voltar para as conversas"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="wa-back-unread oculto" id="chat-back-unread" aria-hidden="true"></span></button>
+                        <button type="button" class="gk-pill" id="btn-chat-menu" aria-label="Opções da conversa" aria-haspopup="menu">
+                            <span class="gk-av-wrap"><span class="wa-av wa-av-thread" id="chat-com-av" aria-hidden="true">?</span><span class="gk-dot oculto" id="chat-com-online" aria-hidden="true"></span></span>
+                            <span class="gk-pill-txt"><strong id="chat-com-nome" class="wa-thread-name">—</strong><span id="chat-com-status" class="wa-thread-status" hidden aria-live="polite"></span></span>
+                        </button>
+                        <button type="button" class="gk-circ gk-refresh" id="btn-chat-atualizar" aria-label="Atualizar mensagens" title="Atualizar mensagens"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12a8 8 0 0 1-13.7 5.6"/><path d="M4 12a8 8 0 0 1 13.7-5.6"/><path d="M17.8 2.8v3.9h-3.9"/><path d="M6.2 21.2v-3.9h3.9"/></g></svg><span class="gk-refresh-ok" aria-hidden="true">Atualizado</span></button>
+                        <button type="button" class="gk-circ gk-amigos" id="btn-chat-amigos" aria-label="Amigos"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 13.6c2.6.2 4.5 2 4.5 4.9"/></g></svg></button>
+                        <button type="button" class="gk-circ gk-opcoes" id="btn-chat-opcoes" aria-label="Opções da conversa" aria-haspopup="menu"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="currentColor"><circle cx="12" cy="5.5" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="12" cy="18.5" r="1.9"/></g></svg></button>
+                    </div>
+                    <div id="chat-head-menu" class="chat-head-menu cx-pop oculto" role="menu" aria-label="Opções da conversa">
+                        <button type="button" role="menuitem" class="cx-item oculto" id="btn-grp-membros"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16.5 13.6c2.6.2 4.5 2 4.5 4.9"/></g></svg><span>Participantes do grupo</span></button>
+                        <button type="button" role="menuitem" class="cx-item oculto" id="btn-op-add-pessoa"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="3.6"/><path d="M3.5 20c0-3.6 2.9-6 6.5-6 1.4 0 2.6.3 3.6.9"/><path d="M18 14v6M15 17h6"/></g></svg><span>Adicionar pessoa</span></button>
+                        <button type="button" role="menuitem" class="cx-item oculto" id="btn-grp-renomear"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4l10.5-10.5a2.1 2.1 0 0 0-4-4L4 16z"/></g></svg><span>Renomear grupo</span></button>
+                        <button type="button" role="menuitem" class="cx-item cx-danger oculto" id="btn-grp-sair"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h4a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-4"/><path d="M10 16l-4-4 4-4M6 12h10"/></g></svg><span>Sair do grupo</span></button>
+                        <button type="button" role="menuitem" class="cx-item" id="btn-op-amigo"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="10" cy="8" r="3.6"/><path d="M3.5 20c0-3.6 2.9-6 6.5-6 1.4 0 2.6.3 3.6.9"/><path d="M18 14v6M15 17h6"/></g></svg><span>Adicionar amigo</span></button>
+                        <button type="button" role="menuitem" class="cx-item" id="btn-apagar-hist-mim"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9.5 7V4.8h5V7M6.5 7l.8 12.2a1.8 1.8 0 0 0 1.8 1.6h5.8a1.8 1.8 0 0 0 1.8-1.6L17.5 7"/><path d="M10 11v6M14 11v6"/></g></svg><span>Apagar conversa</span></button>
+                        <button type="button" role="menuitem" class="cx-item cx-danger" id="btn-op-bloquear"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="8.2"/><path d="M6.3 6.3l11.4 11.4"/></g></svg><span id="btn-op-bloquear-txt">Bloquear usuário</span></button>
+                        <button type="button" role="menuitem" class="cx-item cx-danger cx-sep" id="btn-apagar-hist-todos"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M6.5 7l.8 12.2a1.8 1.8 0 0 0 1.8 1.6h5.8a1.8 1.8 0 0 0 1.8-1.6L17.5 7"/><path d="M9 4.5h6"/><path d="M10 12l4 4M14 12l-4 4"/></g></svg><span>Apagar histórico para todos…</span></button>
+                    </div>
+                    <p id="chat-lote-ctx" class="sub oculto"></p>
+                    <div id="chat-msgs" class="chat-msgs"></div>
+                    <button type="button" id="chat-jump" class="chat-jump oculto" aria-label="Ir para as mensagens mais recentes">↓<span class="chat-jump-n oculto"></span></button>
+
+                    <div id="chat-rec-bar" class="chat-rec-bar cx-rec oculto" role="status" aria-live="polite">
+                        <button type="button" class="cx-rec-lixo" id="btn-cancel-rec" aria-label="Cancelar gravação (descartar sem enviar)"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M9.5 7V4.8h5V7M6.5 7l.8 12.2a1.8 1.8 0 0 0 1.8 1.6h5.8a1.8 1.8 0 0 0 1.8-1.6L17.5 7"/><path d="M10 11v6M14 11v6"/></g></svg><span class="cx-rec-lixo-txt">Cancelar</span></button>
+                        <span class="rec-dot" aria-hidden="true"></span>
+                        <span id="chat-rec-timer" class="chat-rec-timer">0:00</span>
+                        <canvas id="chat-rec-canvas" class="cx-rec-canvas" aria-hidden="true"></canvas>
+                        <span class="cx-rec-slide" id="chat-rec-slide" aria-hidden="true">‹ deslize<span class="cx-rec-slide-x"> para cancelar</span></span>
+                        <button type="button" class="cx-rec-enviar" id="btn-rec-enviar" aria-label="Enviar áudio"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                    </div>
+                    <div id="chat-bloqueio-bar" class="cx-bloq-bar oculto" role="status">
+                        <span id="chat-bloqueio-txt">Você bloqueou este usuário.</span>
+                        <button type="button" class="btn-sm" id="btn-bloq-desbloquear">Desbloquear</button>
+                    </div>
+
+                    <div id="chat-media-preview" class="chat-media-preview oculto"></div>
+                    <p id="chat-anexo-info" class="hint oculto"></p>
+
+                    <div id="chat-agendar-box" class="chat-agendar-row oculto">
+                        <div style="flex:1">
+                            <label for="chat-agendar-em">Enviar em</label>
+                            <input type="datetime-local" id="chat-agendar-em">
+                        </div>
+                    </div>
+
+                    <div id="chat-reply-bar" class="chat-reply-bar oculto" aria-live="polite">
+                        <div class="chat-reply-bar-body">
+                            <span class="chat-reply-bar-label">Respondendo</span>
+                            <span id="chat-reply-snippet" class="chat-reply-snippet"></span>
+                        </div>
+                        <button type="button" class="chat-reply-cancel" id="btn-cancel-reply" title="Cancelar resposta" aria-label="Cancelar resposta">×</button>
+                    </div>
+
+                    <form id="form-chat" class="wa-composer chat-form gk-composer">
+                        <button type="button" class="gk-circ wa-comp-plus" id="btn-chat-plus" aria-label="Anexar">＋</button>
+                        <div class="wa-comp-pill gk-comp-pill">
+                            <textarea id="chat-texto" rows="1" class="wa-comp-input" placeholder="Mensagem…" maxlength="4000" autocomplete="off" enterkeyhint="enter"></textarea>
+                            <span class="cx-rec-lock-wrap" id="chat-rec-lock-wrap" aria-hidden="true">
+                                <span class="cx-rec-lock" id="chat-rec-lock">
+                                    <span class="cx-rec-lock-pad" id="chat-rec-lock-pad">
+                                        <svg class="cx-rec-lock-svg" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M7 10V8a5 5 0 0 1 10 0v2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><rect x="5" y="10" width="14" height="11" rx="2.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="15.5" r="1.4" fill="currentColor"/></svg>
+                                    </span>
+                                    <span class="cx-rec-lock-arrow" aria-hidden="true">⌃</span>
+                                </span>
+                            </span>
+                            <button type="button" class="gk-in-btn mic" id="btn-audio" title="Segure para gravar" aria-label="Gravar áudio (segure)"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></g></svg></button>
+                            <button type="submit" class="gk-in-btn send" id="btn-chat-enviar" aria-label="Enviar" title="Enviar"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M12 19V5M5.5 11.5L12 5l6.5 6.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                        </div>
+                        <input type="file" id="chat-foto" accept="image/*" capture="environment" class="oculto">
+                        <input type="file" id="chat-video" accept="video/*" class="oculto">
+                        <input type="file" id="chat-audio-file" accept="audio/*" class="oculto">
+                        <input type="file" id="chat-doc" accept=".pdf,.doc,.docx,.xls,.xlsx,.txt,application/pdf,image/*" class="oculto">
+                    </form>
+                    <!-- legacy toolbar hooks (hidden) -->
+                    <div class="chat-toolbar oculto" aria-hidden="true">
+                        <button type="button" id="btn-toggle-agendar">Agendar</button>
+                        <label for="chat-audio-file" id="btn-anexar-audio">Anexo</label>
+                    </div>
+                    <div class="chat-extra oculto" aria-hidden="true">
+                        <input type="url" id="chat-url-midia" placeholder="https://...">
+                    </div>
+                    <p id="chat-msg" class="msg"></p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Nova conversa: tela cheia (como "Nova conversa" do WhatsApp) -->
+    <div id="modal-add-contato" class="nc-page oculto" role="dialog" aria-modal="true" aria-labelledby="modal-add-titulo">
+        <div class="nc-head">
+            <button type="button" class="nc-back" id="btn-fechar-add" aria-label="Voltar"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div class="nc-head-txt"><h2 id="modal-add-titulo">Nova conversa</h2><span class="nc-head-sub" id="nc-sub"></span></div>
+        </div>
+        <div class="nc-top">
+            <input type="search" id="add-busca" class="nc-busca" placeholder="Buscar pelo nome" aria-label="Buscar pelo nome" autocomplete="off" enterkeyhint="search">
+            <div class="nc-chips" id="add-role-filters" role="group" aria-label="Filtrar por tipo de trabalho"></div>
+        </div>
+        <div class="nc-scroll" id="nc-scroll">
+            <div id="nc-acoes"></div>
+            <div id="add-diretorio" class="nc-lista"></div>
+            <p class="nc-hint">Por segurança, e-mails de outros usuários nunca aparecem no chat.</p>
+        </div>
+        <p id="add-contato-msg" class="msg nc-msg"></p>
+        <div class="nc-foot oculto" id="nc-foot"><button type="button" class="nc-criar" id="nc-criar-grupo" disabled>Criar grupo</button></div>
+    </div>
+
+    <div id="chat-msg-sheet" class="chat-msg-sheet oculto" role="dialog" aria-modal="true" aria-label="Ações da mensagem">
+        <div class="chat-msg-sheet-backdrop" data-close-sheet="1"></div>
+        <div class="chat-msg-sheet-panel">
+            <div class="chat-msg-sheet-handle" aria-hidden="true"></div>
+            <p id="chat-msg-sheet-preview" class="chat-msg-sheet-preview"></p>
+            <button type="button" class="chat-msg-sheet-item" id="sheet-responder">↩ Responder</button>
+            <button type="button" class="chat-msg-sheet-item oculto" id="sheet-copiar">📋 Copiar</button>
+            <button type="button" class="chat-msg-sheet-item" id="sheet-apagar-mim">Apagar para mim</button>
+            <button type="button" class="chat-msg-sheet-item danger oculto" id="sheet-apagar-todos">Apagar para todos</button>
+            <button type="button" class="chat-msg-sheet-item ghost" id="sheet-cancelar" data-close-sheet="1">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="chat-grupo-sheet" class="chat-msg-sheet oculto gk-amigos-sheet" role="dialog" aria-modal="true" aria-labelledby="grp-sheet-nome">
+        <div class="chat-msg-sheet-backdrop" data-close-grupo="1"></div>
+        <div class="chat-msg-sheet-panel">
+            <div class="chat-msg-sheet-handle" aria-hidden="true"></div>
+            <div class="gk-amigos-top"><p id="grp-sheet-nome" class="gk-amigos-title">Grupo</p><span id="grp-sheet-sub" class="sub"></span></div>
+            <div id="grp-sheet-lista" class="gk-amigos-lista"></div>
+            <button type="button" class="chat-msg-sheet-item" id="grp-sheet-add">＋ Adicionar pessoa</button>
+            <button type="button" class="chat-msg-sheet-item" id="grp-sheet-renomear">✏️ Renomear grupo</button>
+            <button type="button" class="chat-msg-sheet-item danger" id="grp-sheet-sair">Sair do grupo</button>
+            <button type="button" class="btn-ghost" data-close-grupo="1">Fechar</button>
+        </div>
+    </div>
+
+    <div id="chat-amigos-sheet" class="chat-msg-sheet oculto gk-amigos-sheet" role="dialog" aria-modal="true" aria-labelledby="amigos-titulo">
+        <div class="chat-msg-sheet-backdrop" data-close-amigos="1"></div>
+        <div class="chat-msg-sheet-panel">
+            <div class="chat-msg-sheet-handle" aria-hidden="true"></div>
+            <div class="gk-amigos-top"><p id="amigos-titulo" class="gk-amigos-title">Amigos</p><button type="button" class="btn-sm" id="btn-amigos-add">＋ Adicionar</button></div>
+            <input type="search" id="amigos-busca" class="wa-search" placeholder="Buscar por nome ou apelido…" autocomplete="off">
+            <div id="amigos-lista" class="gk-amigos-lista"></div>
+            <button type="button" class="btn-ghost" data-close-amigos="1">Fechar</button>
+        </div>
+    </div>
+
+    <div id="wa-attach-sheet" class="cx-attach oculto" role="menu" aria-label="Anexar">
+        <div class="cx-attach-backdrop" data-close-attach="1"></div>
+        <div class="cx-pop cx-attach-pop">
+            <label class="cx-item" role="menuitem" for="chat-foto-gal"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6.5" y="3.5" width="14" height="13" rx="2.2"/><path d="M3.5 7.5v10.3a2.7 2.7 0 0 0 2.7 2.7h10.3"/><circle cx="11" cy="8" r="1.4"/><path d="M20.5 13.5l-3.6-3.6-6.4 6.6"/></g></svg><span>Anexar imagem</span></label>
+            <label class="cx-item" role="menuitem" for="chat-foto"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.2A2.2 2.2 0 0 1 6.2 6h1.9l1.5-2h4.8l1.5 2h1.9A2.2 2.2 0 0 1 20 8.2v9.6a2.2 2.2 0 0 1-2.2 2.2H6.2A2.2 2.2 0 0 1 4 17.8z"/><circle cx="12" cy="12.8" r="3.6"/></g></svg><span>Tirar foto</span></label>
+            <label class="cx-item" role="menuitem" for="chat-video"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="6" width="12.5" height="12" rx="2.4"/><path d="M16 10.2l4.5-2.7v9l-4.5-2.7"/></g></svg><span>Vídeo</span></label>
+            <label class="cx-item" role="menuitem" for="chat-doc"><svg class="cx-ic" viewBox="0 0 24 24" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 7.2A2.2 2.2 0 0 1 5.7 5h3.9l2 2.2h6.7a2.2 2.2 0 0 1 2.2 2.2v8.4a2.2 2.2 0 0 1-2.2 2.2H5.7a2.2 2.2 0 0 1-2.2-2.2z"/></g></svg><span>Documento</span></label>
+        </div>
+        <input type="file" id="chat-foto-gal" accept="image/*" class="oculto">
+    </div>
+
+    <div id="chat-row-sheet" class="chat-msg-sheet oculto" role="dialog" aria-modal="true" aria-label="Ações da conversa">
+        <div class="chat-msg-sheet-backdrop" data-close-row="1"></div>
+        <div class="chat-msg-sheet-panel">
+            <div class="chat-msg-sheet-handle" aria-hidden="true"></div>
+            <p id="chat-row-sheet-nome" class="chat-msg-sheet-preview"></p>
+            <button type="button" class="chat-msg-sheet-item" id="row-apagar">Apagar conversa</button>
+            <button type="button" class="chat-msg-sheet-item danger" id="row-bloquear">Bloquear usuário</button>
+            <button type="button" class="chat-msg-sheet-item ghost" data-close-row="1">Cancelar</button>
+        </div>
+    </div>
+
+    <div id="cx-confirm" class="cx-confirm oculto" role="alertdialog" aria-modal="true" aria-labelledby="cx-confirm-tit">
+        <div class="cx-confirm-backdrop" data-cx-nao="1"></div>
+        <div class="cx-confirm-panel">
+            <p id="cx-confirm-tit" class="cx-confirm-tit"></p>
+            <p id="cx-confirm-txt" class="cx-confirm-txt"></p>
+            <div class="cx-confirm-bts"><button type="button" class="btn-ghost" data-cx-nao="1">Cancelar</button><button type="button" class="btn-ok" id="cx-confirm-sim">Confirmar</button></div>
+        </div>
+    </div>
+    <div id="cx-undo" class="cx-undo oculto" role="status" aria-live="polite"><span id="cx-undo-txt"></span><button type="button" id="cx-undo-btn">Desfazer</button></div>
+
+    <script src="config.js?v=20261008i"></script>
+    <script src="seguranca.js?v=20261008i"></script>
+    <script src="auth-guard.js?v=20261008i"></script>
+    <script src="suporte.js?v=20261008i"></script>
+    <script src="chat-realtime.js?v=20261008i"></script>
+    <script src="avatar.js?v=20261008i"></script>
+    <script src="nav.js?v=20261008i"></script>
+    <script src="anti-golpe.js?v=20261008i"></script>
+    <script src="chat-store.js?v=20261008i"></script>
+    <script src="chat-midia.js?v=20261008i"></script>
+    <script src="audio-compat.js?v=20261008i"></script>
+    <script src="chat-audio.js?v=20261008i"></script>
+    <script src="chat.js?v=20261008i"></script>
+    <script src="lightbox.js?v=20261008i"></script>
+    <script src="chat-novidade.js?v=20261008i"></script>
+    <script src="chat-trava.js?v=20261008i"></script>
+    <script src="pwa.js?v=20261008i"></script>
+    <script src="app-atalho.js?v=20261008i"></script>
+    <script src="guia-tela.js?v=20261008i"></script>
+    <script>
+    (function waChrome() {
+        function toast(t) { if (typeof toastMsg === 'function') toastMsg(t); }
+        const cam = document.getElementById('btn-chat-cam');
+        if (cam) cam.addEventListener('click', function () {
+            if (typeof contatoAtivo === 'undefined' || !contatoAtivo || !contatoAtivo.auth_id) { toast('Abra uma conversa para enviar foto.'); return; }
+            const f = document.getElementById('chat-foto'); if (f) f.click();
+        });
+        const plus = document.getElementById('btn-chat-plus');
+        const sheet = document.getElementById('wa-attach-sheet');
+        function openSheet(o) {
+            if (!sheet) return;
+            if (o) {
+                var pop = sheet.querySelector('.cx-attach-pop');
+                if (pop && plus) { var r = plus.getBoundingClientRect(); pop.style.left = Math.max(8, Math.round(r.left)) + 'px'; pop.style.bottom = Math.max(8, Math.round(window.innerHeight - r.top + 8)) + 'px'; }
+                sheet.classList.remove('oculto'); requestAnimationFrame(function () { requestAnimationFrame(function () { sheet.classList.add('aberto'); }); }); if (plus) plus.classList.add('on');
+            }
+            else { sheet.classList.remove('aberto'); if (plus) plus.classList.remove('on'); setTimeout(function () { if (!sheet.classList.contains('aberto')) sheet.classList.add('oculto'); }, 180); }
+        }
+        window.waAnexarMenu = openSheet;
+        if (plus) plus.addEventListener('click', function () { openSheet(sheet && sheet.classList.contains('oculto')); });
+        if (sheet) sheet.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('label.cx-item')) setTimeout(function () { openSheet(false); }, 60); });
+        if (sheet) sheet.addEventListener('click', function (e) { if (e.target && e.target.getAttribute('data-close-attach')) openSheet(false); });
+        // Voltar da LISTA: volta à tela anterior (mesma lógica do Voltar das páginas — irVoltarApp/nav.js); sem histórico → Início
+        const listBack = document.getElementById('btn-chat-list-back');
+        if (listBack) listBack.addEventListener('click', function (ev) {
+            if (ev) ev.preventDefault();
+            var ref = document.referrer || '';
+            var same = ref && ref.indexOf(location.origin) === 0;
+            // desktop: conversa aberta ao lado empilha estado chatPeer — pula ele também
+            if (same && history.state && history.state.chatPeer && history.length > 2) { try { history.go(-2); return; } catch (e) { /* ignore */ } }
+            if (typeof irVoltarApp === 'function') { irVoltarApp(); return; }
+            if (same && history.length > 1) { history.back(); return; }
+            location.href = (typeof APP_ROOT === 'string' ? APP_ROOT : '') + 'inicio.html';
+        });
+        const menuList = document.getElementById('btn-chat-menu-list');
+        if (menuList) menuList.addEventListener('click', function () { const add = document.getElementById('btn-add-contato'); if (add) add.click(); });
+        // Iniciais do avatar quando o nome muda
+        const nomeEl = document.getElementById('chat-com-nome');
+        const av = document.getElementById('chat-com-av');
+        if (nomeEl && av && !window.MineraAvatar && typeof MutationObserver !== 'undefined') {
+            const mo = new MutationObserver(function () {
+                const n = (nomeEl.textContent || '?').trim();
+                const parts = n.split(/\s+/);
+                av.textContent = parts.length > 1 ? (parts[0][0] + parts[parts.length - 1][0]).toUpperCase() : n.slice(0, 2).toUpperCase();
+            });
+            mo.observe(nomeEl, { childList: true, characterData: true, subtree: true });
+        }
+    })();
+    </script>
+</body>
+</html>
