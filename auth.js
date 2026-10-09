@@ -186,14 +186,24 @@ function urlParam(nome) {
         return (p.get(nome) || '').trim();
     } catch (e) { return ''; }
 }
+/** Marca gravada no <head> do entrar.html (vale 2 min: sobrevive ao recarregamento de build do pwa.js). */
+function voltaEmailMarca() {
+    try {
+        const v = String(sessionStorage.getItem('minera_volta_email') || '').split(':');
+        if (v[0] && Date.now() - Number(v[1] || 0) < 120000) return v[0];
+    } catch (e) { /* ignore */ }
+    return '';
+}
+function limparVoltaEmail() { try { sessionStorage.removeItem('minera_volta_email'); } catch (e) { /* ignore */ } }
 /** Voltou do link "Confirmar meu e-mail"? */
 function urlIndicaConfirmacaoCadastro() {
     const t = urlParam('type').toLowerCase();
-    return (t === 'signup' || t === 'email') && !urlParam('error_code') && !urlParam('error');
+    if ((t === 'signup' || t === 'email') && !urlParam('error_code') && !urlParam('error')) return true;
+    return voltaEmailMarca() === 'confirmado';
 }
 /** Link vencido / já usado / inválido (o Supabase volta com #error=…&error_code=…). */
 function urlErroLinkEmail() {
-    return urlParam('error_code') || urlParam('error') || '';
+    return urlParam('error_code') || urlParam('error') || (voltaEmailMarca() === 'erro' ? 'erro' : '');
 }
 
 function emailEhNaoConfirmado(error) {
@@ -305,9 +315,14 @@ async function finalizarCadastroSeNecessario(user) {
     if (!user || !user.id) return r;
     try {
         const { data: ja, error: eSel } = await supabaseClient.from('usuarios').select('auth_id').eq('auth_id', user.id).maybeSingle();
-        if (eSel || (ja && ja.auth_id)) return r;
+        if (eSel) return r;
         const meta = user.user_metadata || {};
         const nome = String(meta.nome || '').trim() || 'Usuário';
+        if (ja && ja.auth_id) {
+            // Perfil já existe: só garante a indicação do cadastro (se o 1º login foi interrompido no meio)
+            await aplicarIndicacaoDoCadastro(user, meta, nome, false);
+            return r;
+        }
         const validos = PAPEIS_OPCOES.map(p => p.id);
         const papeis = Array.isArray(meta.papeis) ? meta.papeis.filter(id => validos.indexOf(id) >= 0) : [];
         let apelido = String(meta.apelido || '').trim();
@@ -326,13 +341,7 @@ async function finalizarCadastroSeNecessario(user) {
         }
         if (up && up.error) { console.warn('perfil 1º login:', up.error.message); return r; }
         r.novo = true;
-        // Indicação: código digitado no cadastro (metadata) ou guardado neste aparelho
-        try {
-            const ref = String(meta.ref_codigo || '').trim().toUpperCase();
-            if (/^[A-Z0-9_-]{3,20}$/.test(ref)) localStorage.setItem('minera_ref', ref);
-        } catch (eRef) { /* ignore */ }
-        if (typeof processarIndicacaoNoCadastro === 'function') await processarIndicacaoNoCadastro(user, nome);
-        try { localStorage.removeItem('minera_ref_pendente'); } catch (eP) { /* ignore */ }
+        await aplicarIndicacaoDoCadastro(user, meta, nome, true);
         if (typeof garantirCodigoIndicacao === 'function') {
             try { await garantirCodigoIndicacao({ auth_id: user.id, nome: nome, apelido: apelido }); } catch (eCod) { /* ignore */ }
         }
@@ -342,7 +351,28 @@ async function finalizarCadastroSeNecessario(user) {
     return r;
 }
 
+/**
+ * Indicação do cadastro: código digitado (user_metadata.ref_codigo, vale em qualquer aparelho) ou, no perfil novo,
+ * o guardado neste aparelho. processar_indicacao (servidor) só vale 1 vez por conta e recusa auto-indicação.
+ */
+async function aplicarIndicacaoDoCadastro(user, meta, nome, perfilNovo) {
+    if (typeof processarIndicacaoNoCadastro !== 'function') return;
+    const chave = 'minera_ref_ok_' + user.id;
+    try {
+        if (localStorage.getItem(chave) === '1') return;
+        const ref = String((meta && meta.ref_codigo) || '').trim().toUpperCase();
+        const temRef = /^[A-Z0-9_-]{3,20}$/.test(ref);
+        if (!temRef && !perfilNovo) return;
+        if (temRef) localStorage.setItem('minera_ref', ref);
+        await processarIndicacaoNoCadastro(user, nome);
+        localStorage.setItem(chave, '1');
+        localStorage.removeItem('minera_ref_pendente');
+    } catch (e) { /* ignore */ }
+}
+
 async function irSeLogado() {
+    // pwa.js vai recarregar a página (build novo): faz tudo no recarregamento, sem cortar o 1º login no meio
+    if (window.__mineraRecarregando === true) return;
     const confirmou = urlIndicaConfirmacaoCadastro();
     try {
         const { data: { session } } = await supabaseClient.auth.getSession();
@@ -360,6 +390,7 @@ async function irSeLogado() {
             try { sessionStorage.setItem('minera_apoio_mostrar', '1'); sessionStorage.setItem('minera_sessao_app', '1'); } catch (e2) { /* ignore */ }
             try { if (window.MINERA_CHAT_APP === true) sessionStorage.setItem('minera_chat_unlock_sess_' + session.user.id, '1'); } catch (e3) { /* ignore */ }
             await new Promise(res => setTimeout(res, fin.aviso ? 4000 : 1800));
+            limparVoltaEmail();
         }
         let dest = 'inicio.html';
         if (typeof destinoPosLogin === 'function') {
@@ -506,6 +537,7 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         msg('Entrando...', true);
         esconderReenvioLogin();
+        limparVoltaEmail();
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-senha').value;
         try {
@@ -700,7 +732,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (urlErroLinkEmail() && !urlIndicaRecuperacao()) {
             limparHashAuth();
             mostrarAba('entrar');
-            msg('Este link de confirmação venceu ou já foi usado. Entre com seu e-mail e senha. Se aparecer "Confirme seu e-mail", toque em Reenviar e-mail de confirmação.', false);
+            msg('Este link do e-mail venceu ou já foi usado. Entre com seu e-mail e senha. Se aparecer "Confirme seu e-mail", toque em Reenviar e-mail de confirmação. Se esqueceu a senha, toque em Esqueci minha senha.', false);
         }
     }
     try { setupWelcomeGate(); } catch (e) { console.warn('welcome', e); }
