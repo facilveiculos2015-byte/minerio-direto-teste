@@ -580,6 +580,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    const MSG_EMAIL_JA_TEM_CONTA = 'Esse e-mail já tem conta no Minera Pará. Toque em Entrar ou em Esqueci minha senha.';
     document.getElementById('form-cadastrar').addEventListener('submit', async (e) => {
         e.preventDefault();
         msg('Criando conta...', true);
@@ -622,14 +623,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     emailRedirectTo: urlRetornoConfirmacao()
                 }
             });
-            const jaExiste = (error && /already registered|already exists|user_already_exists/i.test(String(error.code || '') + ' ' + String(error.message || ''))) ||
+            // E-mail que já tem conta: com "Confirm email" ligado o Supabase NÃO devolve erro, devolve um usuário com
+            // identities = [] (e não manda e-mail nem cria nada); com ele desligado devolve 'User already registered'.
+            const jaExiste = (error && /already registered|already exists|user_already_exists|email_exists/i.test(String(error.code || '') + ' ' + String(error.message || ''))) ||
                 (!error && data && data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0);
             if (jaExiste) {
                 // Supabase devolve um usuário "falso" (sem identities) quando o e-mail já tem conta — não é conta nova
                 document.getElementById('login-email').value = email;
                 document.getElementById('login-senha').value = '';
                 mostrarAba('entrar');
-                msg('Este e-mail já tem uma conta no Minera Pará. Se a conta é sua, entre com a senha dela ou toque em "Esqueci a senha". Se não é sua, use o SEU próprio e-mail — cada pessoa precisa da própria conta.', false);
+                msg(MSG_EMAIL_JA_TEM_CONTA, false);
                 return;
             }
             if (error) {

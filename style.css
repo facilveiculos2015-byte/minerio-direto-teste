@@ -7161,6 +7161,11 @@ html[data-theme="light"] .cc-card { background: #ffffff; color: #0f172a; }
 .chat-ext-top .cef-ico { width: 32px; height: 32px; border-radius: 10px; flex-shrink: 0; display: block; }
 .chat-ext-top .cef-txt { white-space: nowrap; }
 .app-atalho-btn.gf-atalho { margin: 0 0 12px; background: rgba(16,185,129,.14); border-color: rgba(16,185,129,.5); }
+/* "Já coloquei"/instalado: o botão NÃO some (fora do modo app), fica pequeno — mesmo visual, compacto */
+.app-atalho-btn.app-atalho-mini { min-height: 28px; padding: 3px 10px; gap: 5px; font-size: .74rem; margin-bottom: 8px; opacity: .92; }
+.app-atalho-btn.chat-ext-top.app-atalho-mini { min-height: 32px; padding: 0 11px 0 4px; gap: 6px; border-width: 1.5px; border-radius: 18px; font-size: .72rem; box-shadow: 0 3px 10px rgba(0,0,0,.28); }
+.chat-ext-top.app-atalho-mini .cef-ico { width: 24px; height: 24px; border-radius: 7px; }
+.app-atalho-btn.gt-mini { font-family: inherit; cursor: pointer; margin: 2px 16px 10px; }
 @media (max-width: 899px) { body.chat-thread-open .app-atalho-btn { display: none !important; } }
 
 /* Gestor Minera (app só-gestor em /gestor/): sem barra de baixo, sem "← Perfil", link discreto para o app completo */
