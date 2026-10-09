@@ -20,13 +20,16 @@
 (function () {
     'use strict';
     if (window.MineraChamada) return;
-    // TRAVA DE AMBIENTE: só liga no AMBIENTE DE TESTE (ou com window.MINERA_CHAMADA_ATIVA = true).
-    // Se este código for promovido para produção antes do SQL 63/Edge lá, nada aparece nem roda.
-    var LIGADO = window.MINERA_CHAMADA_ATIVA === true || (typeof MINERA_TESTE !== 'undefined' && MINERA_TESTE === true);
-    if (!LIGADO) {
-        var esconder = function () { var b = document.getElementById('btn-chat-ligar'); if (b) b.remove(); };
-        if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', esconder); else esconder();
-        return;
+    // TRAVA PELO BACKEND (teste e produção): o botão nasce escondido (style="display:none" no HTML)
+    // e só aparece se o banco tiver o SQL 63 E responder chamada_config() → { ativo: true }.
+    // Sem o SQL (ou app_flags 'chamadas_ativas' = false) nada aparece e nada escuta.
+    // window.MINERA_CHAMADA_ATIVA = false desliga localmente (emergência no próprio site).
+    if (window.MINERA_CHAMADA_ATIVA === false) return;
+    var ATIVO = false, cfgT = 0;
+    function botaoLigar(mostrar) {
+        var b = document.getElementById('btn-chat-ligar'); if (!b) return;
+        b.style.display = mostrar ? '' : 'none';
+        document.documentElement.classList.toggle('chamada-ok', !!mostrar);
     }
 
     var CFG = Object.assign({
@@ -226,6 +229,7 @@
     async function ligar(peer) {
         if (!peer || !peer.auth_id) return;
         if (C) { toastC('Você já está em uma ligação.'); return; }
+        if (!ATIVO && !(await conferirBackend(true))) { toastC('Ligação de voz indisponível no momento.'); return; }
         if (!suportado()) { toastC('Este navegador não faz ligação. Atualize o app/navegador.'); return; }
         if (!eu) await iniciar();
         if (!eu) { toastC('Entre na sua conta para ligar.'); return; }
@@ -618,9 +622,21 @@
         if (r && r.estado === 'tocando' && r.para === eu && !C) entrada(r);
         else if (r && !C) toastC(r.estado === 'atendida' ? 'Ligação já atendida.' : 'Ligação perdida.');
     }
+    // pergunta ao banco se a ligação existe/está ligada (no máx. 1x por minuto)
+    async function conferirBackend(forcar) {
+        if (!forcar && Date.now() - cfgT < 60000) return ATIVO;
+        cfgT = Date.now();
+        var ok = false;
+        try { var d = linha(await rpc('chamada_config', {})); ok = !!(d && d.ativo === true); } catch (e) { ok = false; /* SQL 63 ausente → fica escondido */ }
+        if (!ok && C && !C.fim) ok = true;      // nunca derruba ligação em andamento
+        ATIVO = ok && suportado();
+        botaoLigar(ATIVO);
+        return ATIVO;
+    }
     async function iniciar() {
         var c = sb(); if (!c) return;
         try { var s = await c.auth.getSession(); var u = s && s.data && s.data.session && s.data.session.user; if (!u) return; eu = u.id; } catch (e) { return; }
+        if (!(await conferirBackend(true))) return;
         if (iniciado) return; iniciado = true;
         montarTela();
         assinar();
@@ -629,13 +645,15 @@
     }
     document.addEventListener('visibilitychange', function () {
         if (document.visibilityState !== 'visible' || !eu) return;
+        if (!iniciado) { conferirBackend(false).then(function (ok) { if (ok) iniciar(); }); return; }
+        conferirBackend(false);
         if (C) { poll(); if (C.pc && C.fase === 'reconectando') reiniciarIce(); } else verPendente();
         if (chanSt !== 'SUBSCRIBED') assinar();
     });
     window.addEventListener('online', function () { if (C && C.pc && C.fase !== 'conectada') reiniciarIce(); if (eu && chanSt !== 'SUBSCRIBED') assinar(); });
 
     window.MineraChamada = {
-        ligar: ligar, iniciar: iniciar, ativa: function () { return !!(C && !C.fim); }, suportado: suportado,
+        ligar: ligar, iniciar: iniciar, disponivel: function () { return ATIVO; }, ativa: function () { return !!(C && !C.fim); }, suportado: suportado,
         _reiniciarIce: function () { return reiniciarIce(); },
         /** bytes de áudio recebidos/enviados (prova de que o áudio passa) */
         _stats: async function () {

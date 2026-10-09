@@ -48,3 +48,10 @@ Produção: nada mudou.
 - `minera-teste-setup/qa2/chamada/teste.sql` — regras do SQL 63 num Postgres 17 local (25 checagens).
 - `minera-teste-setup/qa2/chamada/chamada.js` — Playwright visível, 3 navegadores, microfone falso, WebRTC real,
   Supabase simulado (REST + Realtime), Edge Function real (Deno) + coturn local.
+
+## Produção (09/10/2026)
+- Trava de AMBIENTE removida. Agora a trava é pelo BACKEND: o botão 📞 nasce escondido e só aparece se
+  `chamada_config()` (SQL 63) existir e responder `ativo=true`. Sem o SQL → nada aparece e nada escuta.
+- Interruptor: `app_flags` 'chamadas_ativas' = false esconde o botão e o banco recusa ligações novas.
+- Desfazer: `sql/63-chamadas-desfazer.sql` (volta exatamente ao estado do SQL 62; testado 63 → desfazer → 63).
+- Pacote para o painel: /workspace/audit/chamadas (DEPLOY-PROD.md).

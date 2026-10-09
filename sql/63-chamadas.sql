@@ -19,8 +19,13 @@
 --    duracao. So 'perdida' gera push de mensagem.
 --  - Limites: 15 ligacoes / 10 min por pessoa; 4 nao atendidas seguidas
 --    para a mesma pessoa / 10 min; bloqueio do chat impede ligar.
+--  - Interruptor sem desfazer nada: app_flags 'chamadas_ativas' = false
+--    esconde o botao em todos os aparelhos (o app pergunta chamada_config())
+--    e o banco recusa ligacoes novas. Sem a linha = ligado.
+--  - NAO altera a funcao chat_push_notificar (regra 'SQL62_estrito' fica
+--    intacta); so recria o gatilho de INSERT dela com uma condicao WHEN.
 --  Requer: SQL 44 (realtime), 49 (bloqueio), 61/62 (push por aparelho).
---  Transacional. Idempotente. ASCII. Desfazer: ver fim do arquivo.
+--  Transacional. Idempotente. ASCII. Desfazer: sql/63-chamadas-desfazer.sql
 -- =====================================================================
 BEGIN;
 
@@ -160,6 +165,28 @@ $$;
 REVOKE ALL ON FUNCTION public.chamada_ocupado(uuid) FROM PUBLIC, anon, authenticated;
 
 -- ---------- 3) Funcoes chamadas pelo app ----------
+-- Interruptor (app_flags 'chamadas_ativas'; sem linha = ligado). plpgsql: nao quebra se app_flags nao existir.
+CREATE OR REPLACE FUNCTION public.chamadas_ativas()
+RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
+DECLARE v boolean;
+BEGIN
+  SELECT f.value_bool INTO v FROM public.app_flags f WHERE f.key = 'chamadas_ativas';
+  RETURN coalesce(v, true);
+EXCEPTION WHEN OTHERS THEN
+  RETURN true;
+END;
+$$;
+REVOKE ALL ON FUNCTION public.chamadas_ativas() FROM PUBLIC, anon, authenticated;
+
+-- O app so mostra o botao se esta funcao existir E responder ativo=true.
+CREATE OR REPLACE FUNCTION public.chamada_config()
+RETURNS jsonb LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = public AS $$
+BEGIN
+  IF auth.uid() IS NULL THEN RETURN jsonb_build_object('ativo', false, 'v', 1); END IF;
+  RETURN jsonb_build_object('ativo', public.chamadas_ativas(), 'v', 1, 'toque_s', 45);
+END;
+$$;
+
 -- Ligar. Devolve a linha (estado 'tocando', ou 'ocupado' se a outra pessoa esta em ligacao).
 -- Se a outra pessoa esta ME ligando agora (ligacao cruzada) devolve a ligacao DELA (para = eu).
 CREATE OR REPLACE FUNCTION public.chamada_iniciar(p_para uuid, p_aparelho text DEFAULT NULL)
@@ -170,6 +197,7 @@ DECLARE
   c public.chamadas;
 BEGIN
   IF v_eu IS NULL THEN RAISE EXCEPTION 'Entre na sua conta para ligar' USING ERRCODE = '42501'; END IF;
+  IF NOT public.chamadas_ativas() THEN RAISE EXCEPTION 'Ligacoes desativadas no momento' USING ERRCODE = 'P0001'; END IF;
   IF p_para IS NULL OR p_para = v_eu THEN RAISE EXCEPTION 'Destino invalido' USING ERRCODE = '22023'; END IF;
   IF NOT EXISTS (SELECT 1 FROM public.usuarios WHERE auth_id = p_para) THEN
     RAISE EXCEPTION 'Usuario nao encontrado' USING ERRCODE = '22023';
@@ -318,7 +346,7 @@ DECLARE f text;
 BEGIN
   FOREACH f IN ARRAY ARRAY['public.chamada_iniciar(uuid,text)', 'public.chamada_atender(uuid,text)',
                            'public.chamada_encerrar(uuid,text)', 'public.chamada_sdp(uuid,text,text,integer)',
-                           'public.chamada_ping(uuid)', 'public.chamada_pendente()'] LOOP
+                           'public.chamada_ping(uuid)', 'public.chamada_pendente()', 'public.chamada_config()'] LOOP
     EXECUTE 'REVOKE ALL ON FUNCTION ' || f || ' FROM PUBLIC, anon';
     EXECUTE 'GRANT EXECUTE ON FUNCTION ' || f || ' TO authenticated';
   END LOOP;
@@ -441,15 +469,18 @@ END $$;
 NOTIFY pgrst, 'reload schema';
 COMMIT;
 
--- Conferir (esperado: tabela=true, rls=true, funcoes=6, policies_rt=2, publicacao=true, gatilho_push=true)
+-- Conferir (esperado: tabela=true, rls=true, funcoes=7, policies_rt=2, publicacao=true, gatilho_push=true,
+--           push_62_intacto=true, ativo=true)
 SELECT
   (to_regclass('public.chamadas') IS NOT NULL) AS tabela,
   (SELECT relrowsecurity FROM pg_class WHERE oid = 'public.chamadas'::regclass) AS rls,
-  (SELECT count(*) FROM pg_proc WHERE proname IN ('chamada_iniciar', 'chamada_atender', 'chamada_encerrar', 'chamada_sdp', 'chamada_ping', 'chamada_pendente')) AS funcoes,
+  (SELECT count(*) FROM pg_proc WHERE proname IN ('chamada_iniciar', 'chamada_atender', 'chamada_encerrar', 'chamada_sdp', 'chamada_ping', 'chamada_pendente', 'chamada_config')) AS funcoes,
   (SELECT count(*) FROM pg_policies WHERE schemaname = 'realtime' AND policyname LIKE 'minera_chamada_rt_%') AS policies_rt,
   EXISTS (SELECT 1 FROM pg_publication_tables WHERE pubname = 'supabase_realtime' AND tablename = 'chamadas') AS publicacao,
-  EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_chamada_push') AS gatilho_push;
+  EXISTS (SELECT 1 FROM pg_trigger WHERE tgname = 'trg_chamada_push') AS gatilho_push,
+  (position('SQL62_estrito' IN pg_get_functiondef('public.chat_push_notificar()'::regprocedure)) > 0) AS push_62_intacto,
+  public.chamadas_ativas() AS ativo;
 
--- Desfazer (manual):
---   DROP TABLE public.chamadas CASCADE;  DROP POLICY "minera_chamada_rt_select" ON realtime.messages;
---   DROP POLICY "minera_chamada_rt_insert" ON realtime.messages;  e rodar o sql/62 de novo (gatilho sem WHEN).
+-- Desfazer: sql/63-chamadas-desfazer.sql
+-- Desligar sem desfazer: INSERT INTO public.app_flags (key, value_bool) VALUES ('chamadas_ativas', false)
+--   ON CONFLICT (key) DO UPDATE SET value_bool = excluded.value_bool, updated_at = now();

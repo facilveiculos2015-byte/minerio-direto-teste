@@ -58,7 +58,7 @@ type Ice = { urls: string | string[]; username?: string; credential?: string };
 /** Cloudflare: POST generate-ice-servers. Tira URLs da porta 53 (navegadores bloqueiam). */
 async function cloudflare(): Promise<Ice[] | null> {
   const ctl = new AbortController();
-  const t = setTimeout(() => ctl.abort(), 4000);
+  const t = setTimeout(() => ctl.abort(), 2500);  // o app desiste em 3,5 s e liga só com STUN
   try {
     const r = await fetch(`https://rtc.live.cloudflare.com/v1/turn/keys/${encodeURIComponent(CF_KEY_ID)}/credentials/generate-ice-servers`, {
       method: "POST",
