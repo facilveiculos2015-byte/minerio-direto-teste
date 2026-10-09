@@ -23,7 +23,8 @@ function setupWelcomeGate() {
         a.classList.remove('oculto');
         return;
     }
-    if (welcomeJaVisto()) {
+    // Volta do link do e-mail (confirmado ou vencido): mostra direto o login com o aviso
+    if (welcomeJaVisto() || (typeof urlIndicaConfirmacaoCadastro === 'function' && (urlIndicaConfirmacaoCadastro() || urlErroLinkEmail()))) {
         w.classList.add('oculto');
         a.classList.remove('oculto');
         return;
@@ -59,6 +60,7 @@ function mostrarAba(nome) {
     const welcome = document.getElementById('cadastro-welcome');
     if (welcome) welcome.classList.toggle('oculto', entrar);
     document.getElementById('auth-msg').textContent = '';
+    esconderReenvioLogin();
     if (entrar) {
         const email = document.getElementById('login-email');
         setTimeout(() => email && email.focus(), 50);
@@ -154,10 +156,211 @@ async function upsertUsuarioPerfil(user, nome, papeis, apelido) {
     return { error: insErr || null };
 }
 
+/* ===== Confirmação de e-mail (Supabase Auth "Confirm email" ligado) =====
+ * Cadastro sem sessão: mostra o cartão "Enviamos um link…". O perfil (usuarios), o apelido e a indicação
+ * só podem ser gravados com sessão (RLS) → são feitos no 1º login / na volta do link (finalizarCadastroSeNecessario). */
+const MSG_CONFIRMAR_EMAIL = 'Confirme seu e-mail: enviamos um link para a sua caixa de entrada (veja também o spam).';
+const REENVIO_ESPERA_S = 60;
+
+/** Para onde o link do e-mail volta: sempre o login do app em que a pessoa se cadastrou (site, /chat/ ou /gestor/). */
+function urlRetornoConfirmacao() {
+    let base = '';
+    try { if (typeof APP_PUBLIC_URL === 'string' && /^https:\/\//.test(APP_PUBLIC_URL)) base = APP_PUBLIC_URL; } catch (e) { /* ignore */ }
+    if (!base) base = window.location.origin + (typeof APP_ROOT !== 'undefined' ? APP_ROOT : '/');
+    if (!/\/$/.test(base)) base += '/';
+    const sub = window.MINERA_CHAT_APP === true ? 'chat/' : (window.MINERA_GESTOR_APP === true ? 'gestor/' : '');
+    return base + sub + 'entrar.html';
+}
+
+/** URL com que a página abriu (guardada no <head> antes do supabase-js limpar o #). */
+function urlAuthInicial() {
+    try {
+        const u = window.MINERA_URL_AUTH;
+        if (u && typeof u === 'object') return String(u.h || '') + '&' + String(u.s || '');
+    } catch (e) { /* ignore */ }
+    return String(window.location.hash || '') + '&' + String(window.location.search || '');
+}
+function urlParam(nome) {
+    try {
+        const p = new URLSearchParams(urlAuthInicial().replace(/^#/, '').replace(/&\?/, '&').replace(/^\?/, ''));
+        return (p.get(nome) || '').trim();
+    } catch (e) { return ''; }
+}
+/** Voltou do link "Confirmar meu e-mail"? */
+function urlIndicaConfirmacaoCadastro() {
+    const t = urlParam('type').toLowerCase();
+    return (t === 'signup' || t === 'email') && !urlParam('error_code') && !urlParam('error');
+}
+/** Link vencido / já usado / inválido (o Supabase volta com #error=…&error_code=…). */
+function urlErroLinkEmail() {
+    return urlParam('error_code') || urlParam('error') || '';
+}
+
+function emailEhNaoConfirmado(error) {
+    if (!error) return false;
+    return String(error.code || '') === 'email_not_confirmed' || /email not confirmed/i.test(String(error.message || ''));
+}
+
+function chaveReenvio(email) { return 'minera_reenvio_' + String(email || '').trim().toLowerCase(); }
+function marcarReenvio(email) { try { localStorage.setItem(chaveReenvio(email), String(Date.now())); } catch (e) { /* ignore */ } }
+function segundosParaReenviar(email) {
+    try {
+        const t = Number(localStorage.getItem(chaveReenvio(email)) || 0);
+        const falta = Math.ceil((t + REENVIO_ESPERA_S * 1000 - Date.now()) / 1000);
+        return falta > 0 ? Math.min(falta, REENVIO_ESPERA_S) : 0;
+    } catch (e) { return 0; }
+}
+
+/** Botão "Reenviar e-mail de confirmação" com espera de 60 s (contador no próprio botão). */
+function prepararBotaoReenvio(btn, getEmail, mostrar) {
+    if (!btn) return;
+    const rotulo = 'Reenviar e-mail de confirmação';
+    function atualizar() {
+        const falta = segundosParaReenviar(getEmail());
+        if (falta > 0) {
+            btn.disabled = true;
+            btn.textContent = 'Reenviar em ' + falta + ' s';
+            clearTimeout(btn._reenvioT);
+            btn._reenvioT = setTimeout(atualizar, 1000);
+        } else {
+            btn.disabled = false;
+            btn.textContent = rotulo;
+        }
+    }
+    btn._atualizarReenvio = atualizar;
+    if (!btn._reenvioBound) {
+        btn._reenvioBound = true;
+        btn.addEventListener('click', async () => {
+            const email = String(getEmail() || '').trim();
+            if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { mostrar('Digite o seu e-mail no campo E-mail.', false); return; }
+            if (segundosParaReenviar(email) > 0) { atualizar(); return; }
+            btn.disabled = true;
+            btn.textContent = 'Enviando...';
+            marcarReenvio(email);
+            try {
+                const { error } = await supabaseClient.auth.resend({
+                    type: 'signup',
+                    email,
+                    options: { emailRedirectTo: urlRetornoConfirmacao() }
+                });
+                if (error) {
+                    const t = String(error.code || '') + ' ' + String(error.message || '') + ' ' + String(error.status || '');
+                    if (/rate|429|security purposes|after \d+ seconds|over_email/i.test(t)) {
+                        mostrar('Muitos pedidos em pouco tempo. Espere alguns minutos e tente de novo.', false);
+                    } else {
+                        mostrar('Não deu para reenviar agora. Tente de novo em alguns minutos.', false);
+                    }
+                } else {
+                    mostrar('Pronto! Enviamos um novo link para ' + email + '. Veja a caixa de entrada e o spam.', true);
+                }
+            } catch (err) {
+                mostrar('Sem conexão. Confira a internet e tente de novo.', false);
+            }
+            atualizar();
+        });
+    }
+    atualizar();
+}
+
+/** Cartão "Enviamos um link para <email>" (depois do cadastro, quando o Supabase pede confirmação). */
+function mostrarCartaoConfirmarEmail(email) {
+    const wc = document.getElementById('welcome-card');
+    if (wc) wc.classList.add('oculto');
+    const ac = document.getElementById('auth-card');
+    if (ac) ac.classList.add('oculto');
+    const card = document.getElementById('confirmar-email-card');
+    if (!card) { msg('Enviamos um link para ' + email + '. Abra o e-mail e toque em Confirmar meu e-mail para ativar sua conta.', true); return; }
+    const alvo = document.getElementById('conf-email-alvo');
+    if (alvo) alvo.textContent = email;
+    const cm = document.getElementById('conf-msg');
+    if (cm) { cm.textContent = ''; cm.className = 'msg'; }
+    card.classList.remove('oculto');
+    card.dataset.email = email;
+    prepararBotaoReenvio(document.getElementById('btn-reenviar-confirmacao'), () => card.dataset.email || '', (t, ok) => {
+        if (!cm) return;
+        cm.textContent = t;
+        cm.className = 'msg ' + (ok ? 'ok' : 'erro');
+    });
+    try { card.scrollIntoView({ block: 'start' }); } catch (e) { /* ignore */ }
+}
+
+function esconderReenvioLogin() {
+    const b = document.getElementById('btn-reenviar-login');
+    if (b) b.classList.add('oculto');
+}
+function mostrarReenvioLogin() {
+    const b = document.getElementById('btn-reenviar-login');
+    if (!b) return;
+    b.classList.remove('oculto');
+    prepararBotaoReenvio(b, () => (document.getElementById('login-email') || {}).value || '', msg);
+}
+
+/**
+ * 1º login depois de confirmar o e-mail: cria o perfil (usuarios) com o que a pessoa preencheu no cadastro
+ * (guardado no user_metadata: nome, apelido, papéis, código de indicação), aplica a indicação e gera o código
+ * de convite. Não faz nada se o perfil já existe. Devolve { novo, aviso }.
+ */
+async function finalizarCadastroSeNecessario(user) {
+    const r = { novo: false, aviso: '' };
+    if (!user || !user.id) return r;
+    try {
+        const { data: ja, error: eSel } = await supabaseClient.from('usuarios').select('auth_id').eq('auth_id', user.id).maybeSingle();
+        if (eSel || (ja && ja.auth_id)) return r;
+        const meta = user.user_metadata || {};
+        const nome = String(meta.nome || '').trim() || 'Usuário';
+        const validos = PAPEIS_OPCOES.map(p => p.id);
+        const papeis = Array.isArray(meta.papeis) ? meta.papeis.filter(id => validos.indexOf(id) >= 0) : [];
+        let apelido = String(meta.apelido || '').trim();
+        let up = await upsertUsuarioPerfil(user, nome, papeis, apelido);
+        if (up && up.error && typeof erroUnicidadeNomeApelido === 'function' && erroUnicidadeNomeApelido(up.error)) {
+            // Outra pessoa pegou o mesmo nome+apelido enquanto o e-mail não era confirmado
+            for (let i = 0; i < 3 && up && up.error; i++) {
+                const novoAp = ((apelido || 'Minera') + ' ' + (100 + Math.floor(Math.random() * 900))).slice(0, 40);
+                up = await upsertUsuarioPerfil(user, nome, papeis, novoAp);
+                if (!up || !up.error) {
+                    r.aviso = 'O apelido "' + (apelido || nome) + '" já estava em uso. Usamos "' + novoAp + '" — você pode trocar no Perfil.';
+                    apelido = novoAp;
+                    try { await supabaseClient.auth.updateUser({ data: { apelido: novoAp } }); } catch (eMeta) { /* ignore */ }
+                }
+            }
+        }
+        if (up && up.error) { console.warn('perfil 1º login:', up.error.message); return r; }
+        r.novo = true;
+        // Indicação: código digitado no cadastro (metadata) ou guardado neste aparelho
+        try {
+            const ref = String(meta.ref_codigo || '').trim().toUpperCase();
+            if (/^[A-Z0-9_-]{3,20}$/.test(ref)) localStorage.setItem('minera_ref', ref);
+        } catch (eRef) { /* ignore */ }
+        if (typeof processarIndicacaoNoCadastro === 'function') await processarIndicacaoNoCadastro(user, nome);
+        try { localStorage.removeItem('minera_ref_pendente'); } catch (eP) { /* ignore */ }
+        if (typeof garantirCodigoIndicacao === 'function') {
+            try { await garantirCodigoIndicacao({ auth_id: user.id, nome: nome, apelido: apelido }); } catch (eCod) { /* ignore */ }
+        }
+    } catch (e) {
+        console.warn('finalizarCadastro', e);
+    }
+    return r;
+}
+
 async function irSeLogado() {
+    const confirmou = urlIndicaConfirmacaoCadastro();
     try {
         const { data: { session } } = await supabaseClient.auth.getSession();
-        if (!session) return;
+        if (!session) {
+            if (confirmou) {
+                limparHashAuth();
+                msg('E-mail confirmado! Agora entre com seu e-mail e senha.', true);
+            }
+            return;
+        }
+        const fin = await finalizarCadastroSeNecessario(session.user);
+        if (confirmou) {
+            limparHashAuth();
+            msg('E-mail confirmado! Sua conta está ativa. Entrando...' + (fin.aviso ? ' ' + fin.aviso : ''), true);
+            try { sessionStorage.setItem('minera_apoio_mostrar', '1'); sessionStorage.setItem('minera_sessao_app', '1'); } catch (e2) { /* ignore */ }
+            try { if (window.MINERA_CHAT_APP === true) sessionStorage.setItem('minera_chat_unlock_sess_' + session.user.id, '1'); } catch (e3) { /* ignore */ }
+            await new Promise(res => setTimeout(res, fin.aviso ? 4000 : 1800));
+        }
         let dest = 'inicio.html';
         if (typeof destinoPosLogin === 'function') {
             dest = await destinoPosLogin(session.user);
@@ -232,6 +435,18 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) { console.warn(e); }
     if (urlIndicaRecuperacao()) entrarModoRecuperacao();
 
+    // Cartão "Confirme seu e-mail": "Já confirmei — entrar" volta para o login com o e-mail preenchido
+    const btnConfVoltar = document.getElementById('btn-conf-voltar');
+    if (btnConfVoltar) btnConfVoltar.addEventListener('click', () => {
+        const card = document.getElementById('confirmar-email-card');
+        if (card) card.classList.add('oculto');
+        const ac = document.getElementById('auth-card');
+        if (ac) ac.classList.remove('oculto');
+        mostrarAba('entrar');
+        const s = document.getElementById('login-senha');
+        setTimeout(() => s && s.focus(), 60);
+    });
+
     document.getElementById('btn-esqueci').addEventListener('click', async () => {
         const email = document.getElementById('login-email').value.trim();
         if (!email) {
@@ -290,10 +505,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('form-entrar').addEventListener('submit', async (e) => {
         e.preventDefault();
         msg('Entrando...', true);
+        esconderReenvioLogin();
         const email = document.getElementById('login-email').value.trim();
         const password = document.getElementById('login-senha').value;
         try {
             const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+            if (error && emailEhNaoConfirmado(error)) {
+                msg(MSG_CONFIRMAR_EMAIL, false);
+                mostrarReenvioLogin();
+                return;
+            }
             if (error) {
                 msg(error.message === 'Invalid login credentials'
                     ? 'E-mail ou senha incorretos. Confira se já criou a conta e se a senha está certa.'
@@ -304,16 +525,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 msg('Login sem sessão. Tente de novo.', false);
                 return;
             }
-            // Sem papeis: preserva tipo/admin já gravados no banco
-            await upsertUsuarioPerfil(data.user, data.user.user_metadata && data.user.user_metadata.nome);
-            // Indicação pendente do cadastro sem sessão (só para a mesma conta recém-criada)
-            try {
-                const pend = localStorage.getItem('minera_ref_pendente');
-                if (pend && pend === String(email || '').toLowerCase() && typeof processarIndicacaoNoCadastro === 'function') {
-                    await processarIndicacaoNoCadastro(data.user, data.user.user_metadata && data.user.user_metadata.nome);
-                    localStorage.removeItem('minera_ref_pendente');
-                }
-            } catch (ePend) { /* ignore */ }
+            // 1º login depois de confirmar o e-mail: cria o perfil com nome/apelido/papéis/indicação do cadastro
+            const fin = await finalizarCadastroSeNecessario(data.user);
+            if (fin.aviso) {
+                msg(fin.aviso, true);
+                await new Promise(res => setTimeout(res, 3500));
+            }
+            // Perfil que já existia: sem papeis (preserva tipo/admin já gravados no banco)
+            if (!fin.novo) await upsertUsuarioPerfil(data.user, data.user.user_metadata && data.user.user_metadata.nome);
             let dest = 'inicio.html';
             if (typeof destinoPosLogin === 'function') {
                 dest = await destinoPosLogin(data.user);
@@ -341,10 +560,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const papeis = lerPapeisCadastro();
         // Código de indicação digitado (opcional) → minera_ref (validação real no servidor: processar_indicacao)
         const refEl = document.getElementById('cad-ref');
+        let refCodigo = '';
         if (refEl) {
             const refTxt = refEl.value.trim().toUpperCase().replace(/\s+/g, '');
             try {
-                if (/^[A-Z0-9_-]{3,20}$/.test(refTxt)) localStorage.setItem('minera_ref', refTxt);
+                if (/^[A-Z0-9_-]{3,20}$/.test(refTxt)) { localStorage.setItem('minera_ref', refTxt); refCodigo = refTxt; }
                 else if (!refTxt) localStorage.removeItem('minera_ref');
             } catch (eRef) { /* ignore */ }
         }
@@ -356,12 +576,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     return;
                 }
             }
+            if (!refCodigo && typeof lerRefSalvo === 'function') {
+                const salvo = lerRefSalvo();
+                if (/^[A-Z0-9_-]{3,20}$/.test(salvo)) refCodigo = salvo;
+            }
+            const meta = { nome, papeis, apelido };
+            if (refCodigo) meta.ref_codigo = refCodigo; // indicação aplicada no 1º login (pode confirmar em outro aparelho)
             const { data, error } = await supabaseClient.auth.signUp({
                 email,
                 password,
                 options: {
-                    data: { nome, papeis, apelido },
-                    emailRedirectTo: window.location.origin + (typeof APP_ROOT !== 'undefined' ? APP_ROOT : '/') + 'index.html'
+                    data: meta,
+                    emailRedirectTo: urlRetornoConfirmacao()
                 }
             });
             const jaExiste = (error && /already registered|already exists|user_already_exists/i.test(String(error.code || '') + ' ' + String(error.message || ''))) ||
@@ -376,6 +602,15 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             if (error) {
                 msg(/weak_password|at least|should contain|characters/i.test(String(error.code || '') + ' ' + String(error.message || '')) ? MINERA_SENHA_MSG + '.' : ('Erro no cadastro: ' + error.message), false);
+                return;
+            }
+            if (data.user && !data.session) {
+                // "Confirm email" ligado: sem sessão ainda. Perfil, apelido e indicação são gravados no 1º login
+                // (finalizarCadastroSeNecessario) — sem sessão o banco recusa (RLS).
+                marcarReenvio(email); // o e-mail acabou de sair: botão Reenviar só daqui a 60 s
+                document.getElementById('login-email').value = email;
+                document.getElementById('login-senha').value = '';
+                mostrarCartaoConfirmarEmail(email);
                 return;
             }
             if (data.user) {
@@ -461,6 +696,12 @@ document.addEventListener('DOMContentLoaded', () => {
             mostrarAba('entrar');
         }
         irSeLogado();
+        // Link do e-mail vencido/já usado (o Supabase volta com #error_code=otp_expired…)
+        if (urlErroLinkEmail() && !urlIndicaRecuperacao()) {
+            limparHashAuth();
+            mostrarAba('entrar');
+            msg('Este link de confirmação venceu ou já foi usado. Entre com seu e-mail e senha. Se aparecer "Confirme seu e-mail", toque em Reenviar e-mail de confirmação.', false);
+        }
     }
     try { setupWelcomeGate(); } catch (e) { console.warn('welcome', e); }
     try {
