@@ -5,7 +5,7 @@
  *  - JS/CSS/demais: cache 'no-cache' (revalida com ETag → atualiza na hora)
  *  - version.json: nunca cacheado (checagem de build do pwa.js)
  */
-const CACHE = 'minera-shell-20261009zd';
+const CACHE = 'minera-shell-20261021a';
 const PRECACHE = [
   './style.css?v=20261009zd',
   './chat-realtime.js?v=20261009zd',
