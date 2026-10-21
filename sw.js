@@ -5,7 +5,7 @@
  *  - JS/CSS/demais: cache 'no-cache' (revalida com ETag → atualiza na hora)
  *  - version.json: nunca cacheado (checagem de build do pwa.js)
  */
-const CACHE = 'minera-shell-20261021a';
+const CACHE = 'minera-shell-20261021b';
 const PRECACHE = [
   './style.css?v=20261009zd',
   './chat-realtime.js?v=20261009zd',
@@ -72,7 +72,7 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k !== CACHE && !k.startsWith('mbanco-')).map((k) => caches.delete(k)))
     ).then(() => self.clients.claim())
   );
 });
@@ -172,7 +172,7 @@ self.addEventListener('notificationclick', (event) => {
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
       // janelas do Chat Minera (/chat/, app instalado à parte) têm o próprio SW: não navega elas para o app completo
-      const same = list.filter((c) => c.url && c.url.indexOf(scope) === 0 && c.url.indexOf(scope + 'chat/') !== 0 && c.url.indexOf(scope + 'gestor/') !== 0);
+      const same = list.filter((c) => c.url && c.url.indexOf(scope) === 0 && c.url.indexOf(scope + 'chat/') !== 0 && c.url.indexOf(scope + 'gestor/') !== 0 && c.url.indexOf(scope + 'banco/') !== 0);
       const cli = same.find((c) => c.focused) || same[0];
       if (cli) {
         const nav = ('navigate' in cli) ? cli.navigate(target).catch(() => cli) : Promise.resolve(cli);
