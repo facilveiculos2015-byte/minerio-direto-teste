@@ -15,6 +15,7 @@
     var APPS = {
         chat: { flag: 'MINERA_CHAT_APP', dir: 'chat/' },
         gestor: { flag: 'MINERA_GESTOR_APP', dir: 'gestor/' },
+        banco: { flag: 'MINERA_BANCO_APP', dir: 'banco/' },
         main: { flag: '', dir: '' } // app principal (só a marca "Já coloquei" do iPhone, guia-tela.js)
     };
     var K_JANELA = 'minera_janela_app';
@@ -51,6 +52,7 @@
     function subApp() {
         if (window.MINERA_CHAT_APP === true) return 'chat';
         if (window.MINERA_GESTOR_APP === true) return 'gestor';
+        if (window.MINERA_BANCO_APP === true) return 'banco';
         return '';
     }
     function marcar(app) { if (APPS[app]) ls(kMarca(app), String(Date.now())); }

@@ -2,7 +2,7 @@
 <html lang="pt-BR" data-theme="dark">
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.bigdatacloud.net https://nominatim.openstreetmap.org https://api.allorigins.win https://servicodados.ibge.gov.br https://economia.awesomeapi.com.br https://api.gold-api.com https://query1.finance.yahoo.com https://api.coinbase.com https://metalmetric.com https://mintedmetal.com https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src 'self' https://mbclassic.200-141-19-63.sslip.io https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://cdnjs.cloudflare.com https://unpkg.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; font-src 'self' data: https:; connect-src 'self' data: blob: https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://api.bigdatacloud.net https://nominatim.openstreetmap.org https://api.allorigins.win https://servicodados.ibge.gov.br https://economia.awesomeapi.com.br https://api.gold-api.com https://query1.finance.yahoo.com https://api.coinbase.com https://metalmetric.com https://mintedmetal.com https://challenges.cloudflare.com; worker-src 'self' blob:; frame-src 'self' https://www.google.com https://maps.google.com https://challenges.cloudflare.com; object-src 'none'; base-uri 'self'; form-action 'self'; manifest-src 'self'">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
     <title>Minera Pará - Perfil</title>
@@ -64,13 +64,13 @@
             </div>
         </section>
 
-        <!-- 🏦 MineraBank (instância classic separada; login próprio do banco) -->
-        <section class="card card-minerabank" id="card-minerabank" aria-labelledby="minerabank-titulo">
+        <!-- 🏦 MineraBank (app próprio em /banco/, login próprio; opt-in na tela inicial como o Chat/Gestor Minera) -->
+        <section class="card card-gestor card-minerabank" id="card-minerabank" aria-labelledby="minerabank-titulo">
             <h2 id="minerabank-titulo">🏦 MineraBank</h2>
             <p class="sub">Sua conta digital MineraBank: Pix, cartão, extrato e mais. O banco tem login próprio (cadastro e senha do MineraBank).</p>
             <div class="gestor-acoes">
-                <button type="button" class="btn-ok" id="btn-abrir-minerabank">Abrir MineraBank</button>
-                <a class="gestor-abrir" href="https://mbclassic.200-141-19-63.sslip.io/" target="_blank" rel="noopener noreferrer">Abrir em nova aba ›</a>
+                <a class="btn-ok" href="banco/" id="btn-abrir-minerabank">Abrir MineraBank</a>
+                <a class="app-atalho-btn gf-atalho" data-app-atalho="banco" href="banco/instalar.html" hidden>📲 Colocar o MineraBank na tela inicial</a>
             </div>
         </section>
 
@@ -252,7 +252,7 @@
     <script src="avatar-editor.js?v=20261009zd"></script>
     <script src="banners.js?v=20261009zd"></script>
     <script src="perfil.js?v=20261009zd"></script>
-    <script src="pwa.js?v=20261009zd"></script>
-    <script src="minerabank.js?v=20261021a"></script>
+    <script src="pwa.js?v=20261021a"></script>
+    <script src="app-atalho.js?v=20261021a"></script>
 </body>
 </html>
